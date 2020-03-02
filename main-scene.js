@@ -19,21 +19,20 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 [0, 1, 3], [0, 1, 4], [0, 2, 4],
                 [0, 1, 5], [0, 0, 7]
             ))
-        }
+        };
         this.submit_shapes( context, shapes );
-        this.materials =
-            {
-                bowling_ball: context.get_instance( Phong_Shader ).material(Color.of(1, 0, 0, 1), {
-                    ambient: 1
-                }),
-                floor: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
-                    ambient: 1,
-                    texture: context.get_instance("assets/grid.png", true)
-                }),
-                arrow: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 1, 0.8), {
-                    ambient: 1
-                })
-            }
+        this.materials = {
+            bowling_ball: context.get_instance( Phong_Shader ).material(Color.of(1, 0, 0, 1), {
+                ambient: 1
+            }),
+            floor: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 1,
+                texture: context.get_instance("assets/grid.png", true)
+            }),
+            arrow: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 1, 0.8), {
+                ambient: 1
+            })
+        };
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
         this.floor_size = 50;
         this.floor_transform =
@@ -41,27 +40,32 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.translation(Vec.of(0, -3, 0)))
                 .times(Mat4.scale(Vec.of(this.floor_size, 0.10, this.floor_size)));
 
+        // game parameters
+        this.arrow_speed = 2.5;
+        this.ball_speed = .05;
+        this.ball_damping = .00002;
+        this.ball_mass = 1;
+
         // game state
         this.bowling_ball_transform = Mat4.identity();
-        this.bowling_ball_physics_object = new PhysicsObject(Mat4.identity());
+        this.bowling_ball_physics_object = new PhysicsObject(Mat4.identity(), this.ball_damping, this.ball_mass);
         this.lock_camera_on_ball = false;
         this.initial_camera_reset = false;
         this.arrow_angle = Mat4.identity();
         this.ball_launched = false;
         this.reset = false;
 
-        // game parameters
-        this.arrow_speed = 2.5;
-        this.ball_speed = .05;
     }
 
     make_control_panel()
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
-            this.bowling_ball_physics_object.apply_force(
-                Vec.of(Math.sin(this.arrow_angle), 0, -Math.cos(this.arrow_angle), this.ball_speed)
-            );
-            this.ball_launched = true;
+            if (!this.ball_launched) {
+                this.ball_launched = true;
+                this.bowling_ball_physics_object.apply_force(
+                    Vec.of(this.arrow_angle, 0, this.ball_speed)
+                );
+            }
         });
         this.new_line();
         this.key_triggered_button("Lock Camera On Ball", ["c"], () =>
@@ -152,37 +156,3 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.update_camera_transform(graphics_state);
     }
 }
-
-window.PhysicsObject = window.classes.PhysicsObject =
-    class PhysicsObject {
-        constructor(base_transform) {
-            this.base_transform = base_transform;
-            this.transform = base_transform;
-            this.force_vector = Vec.of(0, 0, 0, 0);
-        }
-
-        reset() {
-            this.transform = this.base_transform;
-            this.force_vector = Vec.of(0, 0, 0, 0);
-        }
-
-        apply_force(force_vector) {
-            this.force_vector = this.force_vector.plus(force_vector);
-        }
-
-        get_transform(graphics_state) {
-            const force_magnitude = this.force_vector[3];
-            this.transform = this.transform.times(
-                Mat4.identity()
-                    .times(Mat4.translation(
-                            Vec.of(
-                                force_magnitude * this.force_vector[0] * graphics_state.animation_delta_time,
-                                force_magnitude * this.force_vector[1] * graphics_state.animation_delta_time,
-                                force_magnitude * this.force_vector[2] * graphics_state.animation_delta_time
-                            )
-                        )
-                    )
-            );
-            return this.transform;
-        }
-    }
