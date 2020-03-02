@@ -15,6 +15,8 @@ window.PhysicsObject = window.classes.PhysicsObject =
         }
 
         apply_force(force_vector) {
+            if (force_vector.equals(0, 0, 0))
+                return;
             const current_force_vector_x_y_z = PhysicsObject.calculate_x_y_z(this.force_vector);
             const applied_force_vector_x_y_z = PhysicsObject.calculate_x_y_z(force_vector);
             const new_force_vector_x_y_z = current_force_vector_x_y_z.plus(applied_force_vector_x_y_z);
@@ -27,6 +29,9 @@ window.PhysicsObject = window.classes.PhysicsObject =
         }
 
         get_transform(graphics_state) {
+            if (this.force_vector.equals(Vec.of(0, 0, 0)))
+                return this.transform;
+
             this.force_vector[2] = this.force_vector[2] - (this.damping_constant * graphics_state.animation_delta_time);
             if (this.force_vector[2] < 0)
                 this.force_vector[2] = 0;
@@ -37,23 +42,27 @@ window.PhysicsObject = window.classes.PhysicsObject =
                         Vec.of(
                             force_vector_x_y_z[0] * graphics_state.animation_delta_time,
                             force_vector_x_y_z[1] * graphics_state.animation_delta_time,
-                            force_vector_x_y_z[2] * graphics_state.animation_delta_time
-                        )
+                            force_vector_x_y_z[2] * graphics_state.animation_delta_time)
                         )
                     )
+
             );
             return this.transform;
         }
 
         static calculate_elastic_collision(o1, o2) {
-            const vf_x = this.calculate_elastic_collision(o1, o2, 0);
-            const vf_y = this.calculate_elastic_collision(o1, o2, 1);
-            const vf_z = this.calculate_elastic_collision(o1, o2, 2);
+            const o1_fv_x_y_z = PhysicsObject.calculate_x_y_z(o1.force_vector);
+            const o2_fv_x_y_z = PhysicsObject.calculate_x_y_z(o2.force_vector);
+            const vf_x = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, 0);
+            const vf_y = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, 1);
+            const vf_z = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, 2);
+            o1.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[0], vf_y[0], vf_z[0]));
+            o2.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[1], vf_y[1], vf_z[1]));
         }
 
-        static calculate_elastic_collision(o1, o2, index) {
-            const vo_o1 = o1.force_vector[index];
-            const vo_o2 = o2.force_vector[index];
+        static calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, index) {
+            const vo_o1 = o1_fv_x_y_z[index];
+            const vo_o2 = o2_fv_x_y_z[index];
 
             const vf_o2 = (-o1.mass*vo_o2 + 2*o1.mass*vo_o1 + o2.mass*vo_o2)/(o1.mass + o2.mass);
             const vf_o1 = (o1.mass*vo_o1 + o2.mass*vo_o2 - o2.mass*vf_o2)/o1.mass;
