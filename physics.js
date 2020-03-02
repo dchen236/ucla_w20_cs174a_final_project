@@ -1,11 +1,12 @@
 
 window.PhysicsObject = window.classes.PhysicsObject =
     class PhysicsObject {
-        constructor(base_transform, damping_constant, mass) {
+        constructor(base_transform, damping_constant, mass, center_transform) {
             this.base_transform = base_transform;
             this.transform = base_transform;
             this.force_vector = Vec.of(0, 0, 0);
             this.damping_constant = damping_constant;
+            this.center = center_transform.times(Vec.of(0, 0, 0, 1));
             this.mass = mass;
         }
 
@@ -23,9 +24,15 @@ window.PhysicsObject = window.classes.PhysicsObject =
             const new_force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(new_force_vector_x_y_z);
             this.force_vector = new_force_vector;
         }
-
+        update_center() {
+            this.center = this.transform.times(this.center);
+        }
         apply_damping(damping_constant) {
             this.damping_constant = damping_constant;
+        }
+
+        get_center() {
+            return this.center;
         }
 
         get_transform(graphics_state) {
