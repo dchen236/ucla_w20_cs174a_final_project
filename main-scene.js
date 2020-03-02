@@ -98,9 +98,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
             this.initial_pin_transforms[i] = pin_transform;
             this.pin_physics_objects[i] = new PhysicsObject(Mat4.identity(), this.pin_damping, this.pin_mass, pin_transform);
-            console.log("initalization:" + this.pin_physics_objects[i].center)
+            //console.log("initalization:" + this.pin_physics_objects[i].center)
         }
-        console.log("ball initalization:" + this.bowling_ball_physics_object.center)
+        //console.log("ball initalization:" + this.bowling_ball_physics_object.center)
     }
 
     reset_collision_calculations() {
@@ -161,19 +161,20 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             }
         }
     }
-    // for some reason the reset doesn't affect object when called upon.
+
     reset_scene(graphics_state) {
-        this.initalize_bowling_ball();
+        // this.initalize_bowling_ball();
         // this.initialize_pins();
-        // this.reset_collision_calculations();
-        // this.bowling_ball_transform = Mat4.identity();
-        // this.bowling_ball_physics_object.reset();
-        // this.ball_launched = false;
+
+        this.reset_collision_calculations();
+        this.bowling_ball_transform = Mat4.identity();
+        this.bowling_ball_physics_object.reset();
+        this.ball_launched = false;
         graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
         // this.did_collision_calculation = false;
         // for (let i = 0; i < this.num_pins; i++) {
         //     this.pin_physics_objects[i].reset();
-        //     console.log("pin " + i + " :" + this.pin_physics_objects[i].center);
+        //  //   console.log("pin " + i + " :" + this.pin_physics_objects[i].center);
         // }
         // console.log("ball: " + this.bowling_ball_physics_object.center);
 
@@ -207,7 +208,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.bowling_ball_transform,
             this.materials.bowling_ball
         );
-        this.bowling_ball_physics_object.update_center();
     }
 
     draw_pins(graphics_state) {
@@ -218,7 +218,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     .times(this.initial_pin_transforms[i]),
                 this.materials.pin
             );
-            this.pin_physics_objects[i].update_center();
         }
     }
 

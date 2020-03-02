@@ -8,11 +8,11 @@ window.PhysicsObject = window.classes.PhysicsObject =
             this.damping_constant = damping_constant;
             this.center_transform = center_transform;
             this.center = center_transform.times(Vec.of(0, 0, 0, 1));
+
             this.mass = mass;
         }
 
         reset() {
-            console.log("reset called")
             this.transform = this.base_transform;
             this.center = this.center_transform.times(Vec.of(0, 0, 0, 1));
             this.force_vector = Vec.of(0, 0, 0);
@@ -35,7 +35,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
         }
 
         get_center() {
-            return this.center;
+            return this.transform.times(this.center);
         }
 
         get_transform(graphics_state) {
@@ -60,9 +60,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             return this.transform;
         }
 
-        update_center() {
-            this.center = this.transform.times(this.center);
-        }
+
 
         static calculate_elastic_collision(o1, o2) {
             const o1_fv_x_y_z = PhysicsObject.calculate_x_y_z(o1.force_vector);
@@ -72,8 +70,6 @@ window.PhysicsObject = window.classes.PhysicsObject =
             const vf_z = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, 2);
             o1.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[0], vf_y[0], vf_z[0]));
             o2.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[1], vf_y[1], vf_z[1]));
-            o1.update_center();
-            o2.update_center();
         }
 
         static calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, index) {
