@@ -58,8 +58,10 @@ window.PhysicsObject = window.classes.PhysicsObject =
 
         static calculate_elastic_collision(o1, o2) {
             // calculate magnitude of final forces on objects
-            const o1_fv_x_y_z_init = PhysicsObject.calculate_x_y_z(o1.force_vector);
-            const o2_fv_x_y_z_init = PhysicsObject.calculate_x_y_z(o2.force_vector);
+            const o1_fv_init = o1.force_vector;
+            const o2_fv_init = o2.force_vector;
+            const o1_fv_x_y_z_init = PhysicsObject.calculate_x_y_z(o1_fv_init);
+            const o2_fv_x_y_z_init = PhysicsObject.calculate_x_y_z(o2_fv_init);
             const vf_x = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, 0);
             const vf_y = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, 1);
             const vf_z = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, 2);
@@ -69,32 +71,29 @@ window.PhysicsObject = window.classes.PhysicsObject =
             // adjust angle of final forces on objects based on whether the collision was a glancing collision
             const o1_center = o1.get_center();
             const o2_center = o2.get_center();
-            const collision_normal = o1_center.minus(o2_center);
+            const collision_normal_vector = o1_center.minus(o2_center);
+            const collision_normal =
+                Vec.of(collision_normal_vector[0], collision_normal_vector[1], collision_normal_vector[2]);
             console.log("collision normal: " + collision_normal);
             const normal_theta =
-                (o1_center[0] < o2_center[0] ? -1 : 1) *
-                PhysicsObject.calculate_vector_angle(
-                Vec.of(collision_normal[0], collision_normal[1], collision_normal[2]),
-                Vec.of(0, 0, 1));
+                (o1_center[0] < o2_center[0] ? 1 : -1) *
+                PhysicsObject.calculate_vector_angle(collision_normal, Vec.of(0, 0, 1));
             console.log("normal theta: " + (normal_theta * (180 / Math.PI)));
 
             // calculate o1's angle with splitter
-            const x_vector_matrix = Mat4.identity();
-            x_vector_matrix[0][3] = 1;
-            const zx_collision_splitter_vector =
-                x_vector_matrix.times(Mat4.rotation(normal_theta + Math.PI / 2, Vec.of(0, 1, 0)));
-            const zx_collision_splitter =
-                Vec.of(zx_collision_splitter_vector[0][3], zx_collision_splitter_vector[1][3], zx_collision_splitter_vector[2][3]);
-            const o1_zx_collision_theta = PhysicsObject.calculate_collision_theta(o1_fv_x_y_z_init, zx_collision_splitter);
-            console.log("zx_collision_splitter: " + zx_collision_splitter);
+            const o1_zx_collision_theta =
+                (o1_center[0] < o2_center[0] ? 1 : -1) *
+                PhysicsObject.calculate_collision_theta(o1_fv_x_y_z_init, collision_normal);
             console.log("o1_fv_x_y_z_init: " + o1_fv_x_y_z_init);
-            console.log()
-            console.log("o1 zx collision theta: " + o1_zx_collision_theta);
+            console.log("o1 zx collision theta: " + (o1_zx_collision_theta * 180 / Math.PI));
+
+            o1.force_vector[0] = normal_theta - o1_zx_collision_theta;
 
             const ret = [
                 Mat4.translation(Vec.of(o1_center[0], o1_center[1], o1_center[2])),
-                Mat4.rotation( normal_theta + Math.PI / 2, Vec.of(0, 1, 0)), // splitter rotation
-                Mat4.rotation( o1_zx_collision_theta, Vec.of(0, 1, 0))
+                Mat4.rotation( Math.PI / 2 - normal_theta, Vec.of(0, 1, 0)), // splitter rotation
+                Mat4.rotation( Math.PI / 2 - normal_theta - o1_zx_collision_theta, Vec.of(0, 1, 0)),
+                Mat4.rotation(Math.PI / 2 - normal_theta + o1_zx_collision_theta , Vec.of(0, 1, 0))
             ];
             console.log(ret);
             return ret;
@@ -113,7 +112,8 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 return 0;
             return Math.acos(
                 v1.dot(v2) /
-                (Math.sqrt(v1.dot(v1)) * Math.sqrt(v2.dot(v2))))
+                (Math.sqrt(v1.dot(v1)) * Math.sqrt(v2.dot(v2)))
+            );
         }
 
         static calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, index) {

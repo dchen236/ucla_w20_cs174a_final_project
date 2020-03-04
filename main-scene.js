@@ -250,6 +250,16 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     color: Color.of(0, 1, 0, 1)
                 })
             );
+            this.shapes.collision_guide.draw(
+                graphics_state,
+                Mat4.identity()
+                    .times(this.collision_results[i][0])
+                    .times(this.collision_results[i][3])
+                    .times(this.initial_collision_guide_transform),
+                this.materials.collision_guide.override({
+                    color: Color.of(0, 0, 1, 1)
+                })
+            );
         }
     }
 
