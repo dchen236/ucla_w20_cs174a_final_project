@@ -8,6 +8,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             this.center_transform = center_transform;
             this.center = center_transform.times(Vec.of(0, 0, 0, 1));
             this.mass = mass;
+            this.radius = radius;
         }
 
         reset() {
@@ -120,43 +121,47 @@ window.PhysicsObject = window.classes.PhysicsObject =
             o2.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[1], vf_y[1], vf_z[1]));
 
             // adjust angle of final forces on objects based on whether the collision was a glancing collision
+            const o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o2);
+            const o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o1);
+
+            const ret = [o1_info, o2_info];
+
+            return ret;
+        }
+
+        static update_object_fv_angle(o1_fv_x_y_z_init, o1, o2) {
             const o1_center = o1.get_center();
             const o2_center = o2.get_center();
             const normal_vector = o2_center.minus(o1_center);
-            const normal =
-                Vec.of(normal_vector[0], normal_vector[1], normal_vector[2]);
+            const normal = Vec.of(normal_vector[0], normal_vector[1], normal_vector[2]);
 
             // the angle between collision normal and positive z axis
             const normal_theta = PhysicsObject.calculate_vector_angle(Vec.of(0, 0, 1), normal);
 
-            // calculate o1's angle with splitter
-            const o1_zx_collision_theta = PhysicsObject.calculate_vector_angle(normal, o1_fv_x_y_z_init);
+            // calculate angle with splitter
+            const zx_collision_theta = PhysicsObject.calculate_vector_angle(normal, o1_fv_x_y_z_init);
+            // all rotations are calculated relative to the positive z axis
+            const normal_rotation = PhysicsObject.normalize_angle(normal_theta);
+            const collision_rotation = PhysicsObject.normalize_angle(normal_rotation + zx_collision_theta - Math.PI);
+            const reflection_rotation = PhysicsObject.normalize_angle(normal_rotation - zx_collision_theta - Math.PI);
+            o1.force_vector[0] = reflection_rotation;
 
+            console.log("---");
             console.log("collision normal: " + normal);
             console.log("normal theta: " + (normal_theta * (180 / Math.PI)));
             console.log("o1_fv_x_y_z_init: " + o1_fv_x_y_z_init);
-            console.log("o1 zx collision theta: " + (o1_zx_collision_theta * 180 / Math.PI));
-
-            // all rotations are calculated relative to the positive z axis
-            const normal_rotation = PhysicsObject.normalize_angle(normal_theta);
-            const collision_rotation = PhysicsObject.normalize_angle(normal_rotation + o1_zx_collision_theta - Math.PI);
-            const reflection_rotation = PhysicsObject.normalize_angle(normal_rotation - o1_zx_collision_theta - Math.PI);
-
-
+            console.log("zx collision theta: " + (zx_collision_theta * 180 / Math.PI));
             console.log("normal_rotation: " + normal_rotation * 180 / Math.PI);
             console.log("collision_rotation: " + collision_rotation * 180 / Math.PI);
             console.log("reflection_rotation: " + reflection_rotation * 180 / Math.PI);
+            console.log("---");
 
-            o1.force_vector[0] = reflection_rotation;
-
-            const ret = [
+            return [
                 Mat4.translation(Vec.of(o1_center[0], o1_center[1], o1_center[2])),
                 Mat4.rotation( normal_rotation, Vec.of(0, 1, 0)),
                 Mat4.rotation( collision_rotation, Vec.of(0, 1, 0)),
                 Mat4.rotation( reflection_rotation, Vec.of(0, 1, 0))
             ];
-            console.log(ret);
-            return ret;
         }
 
         static calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, index) {

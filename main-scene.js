@@ -54,32 +54,35 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(0, -3, 0)))
                 .times(Mat4.scale(Vec.of(this.floor_size, 0.10, this.floor_size)));
+        this.collision_guide_length = 1;
         this.initial_collision_guide_transform =
             Mat4.identity()
-                .times(Mat4.scale(Vec.of(0.1, 0.1, 2.5)))
-                .times(Mat4.translation(Vec.of(0, 0, 2.5 / 2)));
+                .times(Mat4.scale(Vec.of(0.1, 0.1, this.collision_guide_length / 2)))
+                .times(Mat4.translation(Vec.of(0, 0, this.collision_guide_length * 2)));
 
         // game parameters
         this.arrow_speed = 1.5;
-        this.ball_speed = .05;
+        this.ball_speed = .10;
         this.floor_damping = .00002;
         this.ball_damping = this.floor_damping;
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
-        this.pin_mass = 200;
+        this.pin_mass = 2;
         this.bowling_ball_radius = 1;
-        this.pin_radius = 75;
-        this.num_pins = 1;
+        this.pin_radius = 2;
+        this.num_pins = 2;
         this.collide_adjust = 0.2;
+
         // game state
         this.bowling_ball_transform = Mat4.identity();
         this.bowling_ball_physics_object =
             new PhysicsObject(this.ball_damping, this.ball_mass, Mat4.identity(), this.bowling_ball_radius);
-
         this.pin_physics_objects = [];
+        this.base_pin_transform =
+            Mat4.identity()
+                .times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
+                .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
         this.initial_pin_transforms = [];
-        this.initialize_pins();
-
         this.lock_camera_on_ball = false;
         this.initial_camera_reset = false;
         this.arrow_angle = 0;
@@ -88,53 +91,80 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         // testing state
         this.collision_results = [];
+
+        // initializations
+        this.initialize_grid_pins();
+
     }
 
     // takes cares of both this.pin_physics_objects and this.initial_pin_transforms
     initialize_pins() {
-        // let pin_spacing = 2;
-        // let outermost_pin_loc = this.num_pins * this.pin_radius;
-        // for (let i = 0; i < this.num_pins; i++) {
-        //     let location_adjuster = i * pin_spacing + i * this.pin_radius;
-        //     let pin_transform =  Mat4.identity()
-        //         .times(Mat4.translation(Vec.of(-outermost_pin_loc + location_adjuster , 0, -12 )))
-        //         .times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
-        //         .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
-        //     this.initial_pin_transforms[i] = pin_transform;
-        //     this.pin_physics_objects[i] = new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius);
-        //     //console.log("initalization:" + this.pin_physics_objects[i].center)
-        // }
-        // console.log("ball initalization:" + this.bowling_ball_physics_object.center)
+        let pin_spacing = 4;
+        let outermost_pin_loc = this.num_pins * this.pin_radius;
+        for (let i = 0; i < this.num_pins; i++) {
+            let location_adjuster = i * pin_spacing + i * this.pin_radius;
+            let pin_transform =  Mat4.identity()
+                .times(Mat4.translation(Vec.of(-outermost_pin_loc + location_adjuster , 0, -12 )))
+                .times(this.base_pin_transform);
+            this.initial_pin_transforms[i] = pin_transform;
+            this.pin_physics_objects[i] = new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius);
+        }
+        console.log("ball initalization:" + this.bowling_ball_physics_object.center)
+    }
 
+    initialize_large_test_pins() {
         const pin_distance = 100;
+        this.pin_mass = 200;
+        this.pin_radius = 75;
 
         this.initial_pin_transforms[0] =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(0, 0, -pin_distance)))
-                .times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
-                .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
+                .times(this.base_pin_transform);
         this.pin_physics_objects[0] = new PhysicsObject(this.pin_damping, this.pin_mass, this.initial_pin_transforms[0], this.pin_radius);
 
         this.initial_pin_transforms[1] =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(0, 0, pin_distance)))
-                .times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
-                .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
+                .times(this.base_pin_transform);
         this.pin_physics_objects[1] = new PhysicsObject(this.pin_damping, this.pin_mass, this.initial_pin_transforms[1], this.pin_radius);
 
         this.initial_pin_transforms[2] =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(pin_distance, 0, 0)))
-                .times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
-                .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
+                .times(this.base_pin_transform);
         this.pin_physics_objects[2] = new PhysicsObject(this.pin_damping, this.pin_mass, this.initial_pin_transforms[2], this.pin_radius);
 
         this.initial_pin_transforms[3] =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(-pin_distance, 0, 0)))
-                .times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
-                .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
+                .times(this.base_pin_transform);
         this.pin_physics_objects[3] = new PhysicsObject(this.pin_damping, this.pin_mass, this.initial_pin_transforms[3], this.pin_radius);
+    }
+
+    initialize_grid_pins() {
+        let pin_spacing = 20;
+        let x_range = 30;
+        let z_range = 30;
+        let i = 0;
+        this.num_pins = 0;
+
+        for (let x = -x_range; x < x_range; x += pin_spacing) {
+            for (let z = -z_range; z < z_range; z += pin_spacing) {
+                const ball_dist_vec = PhysicsObject.calculate_offset_angles_and_magnitude(
+                    Vec.of(this.bowling_ball_transform[0][3] - x, 0, this.bowling_ball_transform[2][3] - z)
+                );
+                if (this.pin_radius + this.bowling_ball_radius < ball_dist_vec[2]) {
+                    let pin_transform = Mat4.identity()
+                        .times(Mat4.translation(Vec.of(x, 0, z)))
+                        .times(this.base_pin_transform);
+                    this.initial_pin_transforms[i] = pin_transform;
+                    this.pin_physics_objects[i] = new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius);
+                    i++;
+                    this.num_pins++;
+                }
+            }
+        }
     }
 
     make_control_panel()
@@ -198,10 +228,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.bowling_ball_physics_object.reset();
         this.ball_launched = false;
         graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
-        // for (let i = 0; i < this.num_pins; i++) {
-        //     this.pin_physics_objects[i].reset();
-        //  //   console.log("pin " + i + " :" + this.pin_physics_objects[i].center);
-        // }
+        for (let i = 0; i < this.num_pins; i++) {
+            this.pin_physics_objects[i].reset();
+         //   console.log("pin " + i + " :" + this.pin_physics_objects[i].center);
+        }
         // console.log("ball: " + this.bowling_ball_physics_object.center);
 
     }
@@ -240,7 +270,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
             this.shapes.pin.draw(
                 graphics_state,
-                this.pin_physics_objects[i].get_transform(graphics_state)
+                this.pin_physics_objects[i]
+                    .get_transform(graphics_state)
                     .times(this.initial_pin_transforms[i]),
                 this.materials.pin
             );
@@ -250,34 +281,37 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     draw_collision_results(graphics_state) {
 
         for (let i = 0; i < this.collision_results.length; i++) {
-            this.shapes.collision_guide.draw(
-                graphics_state,
-                Mat4.identity()
-                    .times(this.collision_results[i][0])
-                    .times(this.collision_results[i][1])
-                    .times(this.initial_collision_guide_transform),
-                this.materials.collision_guide
-            );
-            this.shapes.collision_guide.draw(
-                graphics_state,
-                Mat4.identity()
-                    .times(this.collision_results[i][0])
-                    .times(this.collision_results[i][2])
-                    .times(this.initial_collision_guide_transform),
-                this.materials.collision_guide.override({
-                    color: Color.of(0, 1, 0, 1)
-                })
-            );
-            this.shapes.collision_guide.draw(
-                graphics_state,
-                Mat4.identity()
-                    .times(this.collision_results[i][0])
-                    .times(this.collision_results[i][3])
-                    .times(this.initial_collision_guide_transform),
-                this.materials.collision_guide.override({
-                    color: Color.of(0, 0, 1, 1)
-                })
-            );
+            for (let j = 0; j < 2; j++) {
+                this.shapes.collision_guide.draw(
+                    graphics_state,
+                    Mat4.identity()
+                        .times(this.collision_results[i][j][0])
+                        .times(this.collision_results[i][j][1])
+                        .times(this.initial_collision_guide_transform),
+                    this.materials.collision_guide
+                );
+                this.shapes.collision_guide.draw(
+                    graphics_state,
+                    Mat4.identity()
+                        .times(this.collision_results[i][j][0])
+                        .times(this.collision_results[i][j][2])
+                        .times(this.initial_collision_guide_transform),
+                    this.materials.collision_guide.override({
+                        color: Color.of(0, 1, 0, 1)
+                    })
+                );
+                this.shapes.collision_guide.draw(
+                    graphics_state,
+                    Mat4.identity()
+                        .times(this.collision_results[i][j][0])
+                        .times(this.collision_results[i][j][3])
+                        .times(this.initial_collision_guide_transform)
+                        .times(Mat4.translation(Vec.of(0, 0.5, 0))),
+                    this.materials.collision_guide.override({
+                        color: Color.of(0, 0, 1, 1)
+                    })
+                );
+            }
         }
 
     }
@@ -289,11 +323,48 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         return Math.sqrt(xs * xs + ys * ys + zs * zs);
     }
 
-    check_if_collide(pin, ball) {
-        let pin_center = pin.get_center();
-        let ball_center = ball.get_center();
-        let distance = this.get_distance(pin_center, ball_center);
-        return distance <= this.pin_radius + this.bowling_ball_radius + this.collide_adjust;
+    check_if_collide(o1, o2) {
+        console.log("collision check: ");
+        let o1_center = o1.get_center();
+        let o2_center = o2.get_center();
+        let distance = this.get_distance(o1_center, o2_center);
+        console.log("o1 center: " + o1_center);
+        console.log("o2 center: " + o2_center);
+        console.log("o1 radius: " + o1.radius);
+        console.log("o2 radius: " + o2.radius);
+        console.log("distance: " + distance);
+        return distance <= o1.radius + o2.radius + this.collide_adjust;
+    }
+
+    do_collision(o1, o2) {
+        const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2);
+        this.collision_results.push(collision_result);
+        console.log("o1 center: " + o1.get_center());
+        console.log("o2 center: " + o2.get_center());
+        console.log("o1 force vector: " + o1.force_vector);
+        console.log("o2 force vector: " + o2.force_vector);
+    }
+
+    handle_collisions() {
+        // check if ball collide 0th pin
+        for (let i = 0; i < this.pin_physics_objects.length; i++) {
+            if (this.check_if_collide(this.pin_physics_objects[i], this.bowling_ball_physics_object) ) {
+                console.log("did ball to pin collide")
+                this.do_collision(this.bowling_ball_physics_object, this.pin_physics_objects[i]);
+            }
+        }
+
+        for (let i = 0; i < this.pin_physics_objects.length - 1; i++) {
+            for (let j = i + 1; j < this.pin_physics_objects.length; j++) {
+                if (!this.pin_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0)) &&
+                    !this.pin_physics_objects[j].force_vector.equals(Vec.of(0, 0, 0))) {
+                    if (this.check_if_collide(this.pin_physics_objects[i], this.pin_physics_objects[j])) {
+                        console.log("did pin to pin collide, index " + i + " to index " + j);
+                        this.do_collision(this.pin_physics_objects[i], this.pin_physics_objects[j]);
+                    }
+                }
+            }
+        }
     }
 
     display( graphics_state )
@@ -315,20 +386,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.arrow_angle =  Math.PI + (Math.PI / 1) * Math.sin(this.arrow_speed * t);
             this.draw_arrow(graphics_state, this.arrow_angle);
         }
-        // check if ball collide 0th pin
-        for (let i = 0; i < this.pin_physics_objects.length; i++) {
-            if (this.check_if_collide(this.pin_physics_objects[i], this.bowling_ball_physics_object) ){
-                console.log("did collide")
-                const collision_result = PhysicsObject.calculate_elastic_collision(
-                    this.bowling_ball_physics_object, this.pin_physics_objects[i]
-                );
-                this.collision_results.push(collision_result);
-                console.log("pin center: " + this.pin_physics_objects[i].get_center());
-                console.log("ball center: " + this.bowling_ball_physics_object.get_center());
-                console.log("pin force vector: " + this.pin_physics_objects[i].force_vector);
-                console.log("ball force vector: " + this.bowling_ball_physics_object.force_vector);
-            }
-        }
+
+        this.handle_collisions();
 
         this.draw_collision_results(graphics_state);
 
