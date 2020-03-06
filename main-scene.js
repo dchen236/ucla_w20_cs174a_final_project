@@ -91,6 +91,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         // testing state
         this.collision_results = [];
+        this.enable_collision_markers = false;
 
         // initializations
         this.initialize_grid_pins();
@@ -143,7 +144,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     initialize_grid_pins() {
-        let pin_spacing = 20;
+        let pin_spacing = 8;
         let x_range = 30;
         let z_range = 30;
         let i = 0;
@@ -197,6 +198,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.new_line();
         this.key_triggered_button("Reset Ball", ["l"], () =>
             this.reset = true
+        );
+        this.new_line();
+        this.key_triggered_button("Toggle collision markers", ["t"], () =>
+            this.enable_collision_markers = !this.enable_collision_markers
         );
     }
 
@@ -349,14 +354,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // check if ball collide 0th pin
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
             if (this.check_if_collide(this.pin_physics_objects[i], this.bowling_ball_physics_object) ) {
-                console.log("did ball to pin collide")
+                console.log("did ball to pin collide");
                 this.do_collision(this.bowling_ball_physics_object, this.pin_physics_objects[i]);
             }
         }
 
         for (let i = 0; i < this.pin_physics_objects.length - 1; i++) {
             for (let j = i + 1; j < this.pin_physics_objects.length; j++) {
-                if (!this.pin_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0)) &&
+                if (!this.pin_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0)) ||
                     !this.pin_physics_objects[j].force_vector.equals(Vec.of(0, 0, 0))) {
                     if (this.check_if_collide(this.pin_physics_objects[i], this.pin_physics_objects[j])) {
                         console.log("did pin to pin collide, index " + i + " to index " + j);
@@ -389,7 +394,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         this.handle_collisions();
 
-        this.draw_collision_results(graphics_state);
+        if (this.enable_collision_markers) {
+            this.draw_collision_results(graphics_state);
+        }
 
         this.update_camera_transform(graphics_state);
     }
