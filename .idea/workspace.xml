@@ -32,6 +32,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="jsx.switch.disabled" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="ServiceViewManager">
@@ -65,7 +66,11 @@
       <workItem from="1583250674742" duration="4976000" />
       <workItem from="1583261870155" duration="4050000" />
       <workItem from="1583266348514" duration="4220000" />
-      <workItem from="1583290454444" duration="13634000" />
+      <workItem from="1583290454444" duration="13874000" />
+      <workItem from="1583304517714" duration="4558000" />
+      <workItem from="1583381524197" duration="10182000" />
+      <workItem from="1583438207042" duration="11788000" />
+      <workItem from="1583466618192" duration="2144000" />
     </task>
     <servers />
   </component>
@@ -81,9 +86,9 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="383" y="0" key="refactoring.ChangeSignatureDialog/0.0.1280.680@0.0.1280.680" timestamp="1583117266092" />
-    <state x="297" y="151" key="run.anything.popup" timestamp="1583193049553">
+    <state x="297" y="151" key="run.anything.popup" timestamp="1583445614160">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="297" y="151" key="run.anything.popup/0.0.1280.680@0.0.1280.680" timestamp="1583193049553" />
+    <state x="297" y="151" key="run.anything.popup/0.0.1280.680@0.0.1280.680" timestamp="1583445614160" />
   </component>
 </project>
