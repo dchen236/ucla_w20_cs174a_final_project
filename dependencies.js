@@ -113,6 +113,25 @@ window.Shape_From_File = window.classes.Shape_From_File =
       { if( this.ready ) super.draw( graphics_state, model_transform, material );   }
     }
 
+
+// This is just a square but with customezied shape constructor for sky box
+window.Square_Map = window.classes.Square_Map =
+    class Square_Map extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
+      // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+    {                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals,
+      constructor(size)                         // etc) smaller and more cache friendly.
+      { super( "positions", "normals", "texture_coords" );                                // Name the values we'll define per each vertex.
+
+
+        this.positions     .push( ...Vec.cast( [-size,-size,0], [size,-size,0], [-size,size,0], [size,size,0] ) );   // Specify the 4 square corner locations.
+        this.normals       .push( ...Vec.cast( [-1,-1,1],   [1,-1,1],  [-1,1,1],  [1,1,1] ) );   // Match those up with normal vectors.
+        this.texture_coords.push( ...Vec.cast( [1,0],     [0,0],    [1,1],    [0,1]   ) );
+        this.indices       .push( 0, 1, 2,     1, 3, 2 );                   // Two triangles this time, indexing into four distinct vertices.
+      }
+    }
+
+
+
 window.Triangle = window.classes.Triangle =
 class Triangle extends Shape    // The simplest possible Shape – one triangle.  It has 3 vertices, each
 { constructor()                 // having their own 3D position, normal vector, and texture-space coordinate.

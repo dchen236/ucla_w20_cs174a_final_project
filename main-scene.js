@@ -18,6 +18,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
         const shapes = {
             bowling_ball: new Subdivision_Sphere(5),
+
             floor: new Cube(),
             arrow: new Surface_Of_Revolution( 8, 8, Vec.cast(
                 [0, 1, 0], [0, 1, 1], [0, 1, 2],
@@ -28,10 +29,35 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             score_text: new Text_Line(100),
             collision_guide: new Cube(),
             wall: new Cube(),
-            bounding_cube: new Cube()
+            bounding_cube: new Cube(),
+            skybox: new Square_Map(50), //marker
         };
         this.submit_shapes( context, shapes );
         this.materials = {
+            // testing skybox
+            // 1: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+            //     ambient: 1,
+            //     texture: context.get_instance( "assets/casino_left_right", false )
+            // } ),
+            // 2: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+            //     ambient: 1,
+            //     texture: context.get_instance( "assets/casino_left_right", false )
+            // } ),
+            3: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+                ambient: 1,
+                texture: context.get_instance( "assets/casino_left_right.jpg", false )
+            } ),
+            4: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+                ambient: 1,
+                texture: context.get_instance( "assets/casino_left_right.jpg", false )
+            } ),
+            5: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+                ambient: 1,
+                texture: context.get_instance( "assets/casino_front_back.jpg", false ) } ),
+            6: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+                ambient: 1,
+                texture: context.get_instance( "assets/casino_front_back.jpg", false ) } ),
+
             bowling_ball: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.8,
                 texture: context.get_instance("assets/BallCue.jpg", true)
@@ -73,7 +99,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         this.collide_sound = new Audio("assets/collide_sound.mp3");
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
-        this.floor_width = 60;
+        this.floor_width = 80;
         this.floor_height = 80;
         this.floor_transform =
             Mat4.identity()
@@ -254,15 +280,30 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // console.log("ball: " + this.bowling_ball_physics_object.center);
 
     }
+    draw_skybox(graphics_state,k,t){
+        for( var i = 0; i < 3; i++ )
+            for( var j = 0; j < 2; j++ )
+            {
+                k += 1;
+                if ( k!= 1 && k != 2) {
+                    let square_transform = Mat4.rotation( i == 0 ? Math.PI/2 : 0, Vec.of(1, 0, 0) )
+                        .times( Mat4.rotation( Math.PI * j - ( i == 1 ? Math.PI/2 : 0 ), Vec.of( 0, 1, 0 ) ) )
+                        .times( Mat4.rotation(  k > 2 ? t/10 : 0, Vec.of( 0, 1, 0 ) ) )
+                        .times( Mat4.translation([ 0, 0,50]) );
+                    // .times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));//marker
+                    this.shapes.skybox.draw(graphics_state, square_transform, this.materials[k]);
+                }
 
+            }
+    }
     draw_static_scene(graphics_state) {
-        let scale_factor = 200;
-        this.bounding_cube_transform =  Mat4.identity().times(Mat4.scale(Vec.of(scale_factor,scale_factor,scale_factor)));
-        this.shapes.bounding_cube.draw(
-            graphics_state,
-            this.bounding_cube_transform,
-            this.materials.bounding_cube
-        );
+        // let scale_factor = 200;
+        // this.bounding_cube_transform =  Mat4.identity().times(Mat4.scale(Vec.of(scale_factor,scale_factor,scale_factor)));
+        // this.shapes.bounding_cube.draw(
+        //     graphics_state,
+        //     this.bounding_cube_transform,
+        //     this.materials.bounding_cube
+        // );
         this.shapes.floor.draw(
             graphics_state,
             this.floor_transform,
@@ -308,7 +349,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.wall_transform_east,
             this.materials.wall
         );
-
+        this.draw_skybox(graphics_state,0, 0);
     }
 
     draw_arrow(graphics_state, arrow_angle) {
