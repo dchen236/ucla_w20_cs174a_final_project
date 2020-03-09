@@ -18,7 +18,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
         const shapes = {
             bowling_ball: new Subdivision_Sphere(5),
-
             floor: new Cube(),
             arrow: new Surface_Of_Revolution( 8, 8, Vec.cast(
                 [0, 1, 0], [0, 1, 1], [0, 1, 2],
@@ -107,17 +106,18 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.scale(Vec.of(this.floor_width / 2, 0.10, this.floor_height / 2)));
 
         this.default_time_constant = 1.0;
-        this.slow_motion_time_constant = 0.05;
+        this.slow_motion_time_constant = 0.025;
         this.current_time_constant = this.default_time_constant;
         this.paused = false;
         this.collision_guide_length = 5;
         this.initial_collision_guide_transform =
             Mat4.identity()
-                .times(Mat4.translation(Vec.of(0, 0, this.collision_guide_length / 4)))
+                .times(Mat4.translation(Vec.of(0, 3, this.collision_guide_length / 2)))
                 .times(Mat4.scale(Vec.of(0.1, 0.1, this.collision_guide_length / 2)));
         this.score = 0;
         this.last_launch_time = 60 * 10;
         this.game_over = false;
+
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
@@ -132,6 +132,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.collide_adjust = 0.2;
         this.launch_left = 5;
         this.arrow_speed = 2;
+
         // game state
         this.bowling_ball_transform = Mat4.identity();
         this.bowling_ball_physics_object =
@@ -156,14 +157,17 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // testing state
         this.collision_results = new Array();
         this.max_collision_results_history_size = 10;
-        this.enable_collision_markers = false;
+        this.enable_collision_markers = true;
         this.collision_guide_colors = [
             [Color.of(1, 0, 0, 1), Color.of(0, 1, 0, 1), Color.of(0, 0, 1, 1)], // normal, collision, reflection colors for o1
             [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
         ];
         this.free_play_mode = true;
-        this.slow_motion_toggle = false;
+        this.slow_motion_toggle = true;
         this.slow_motion = false;
+        this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE = 3.1800250415135047;
+        this.auto_pause_on_collision_toggle = true;
+        this.auto_pause_on_collision = false;
 
         // initializations
         this.initialize_triangle_pins();
@@ -201,6 +205,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 }
                 // this.ball_launched = true;
                 console.log("---");
+                console.log("Ball launched at angle (Radians): " + this.arrow_angle);
                 this.bowling_ball_physics_object.apply_force(
                     Vec.of(this.arrow_angle, 0, this.ball_speed)
                 );
@@ -242,6 +247,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.new_line();
         this.key_triggered_button("Pause", ["p"], () =>
             this.paused = !this.paused
+        );
+        this.new_line();
+        this.key_triggered_button("Toggle auto-pause on collision", ["["], () =>
+            this.auto_pause_on_collision_toggle = true
         );
     }
 
@@ -474,6 +483,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         while (this.collision_results.length > this.max_collision_results_history_size) {
             this.collision_results.shift();
         }
+        if (this.auto_pause_on_collision) {
+            this.paused = true;
+        }
         // console.log("o1 center: " + o1.get_center());
         // console.log("o2 center: " + o2.get_center());
         // console.log("o1 force vector: " + o1.force_vector);
@@ -621,11 +633,20 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         }
     }
 
+    toggle_auto_pause_on_collision() {
+        this.auto_pause_on_collision_toggle = false;
+        this.auto_pause_on_collision = !this.auto_pause_on_collision;
+    }
+
     display( graphics_state )
     { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
 
         if (this.slow_motion_toggle) {
             this.toggle_slow_motion();
+        }
+
+        if (this.auto_pause_on_collision_toggle) {
+            this.toggle_auto_pause_on_collision();
         }
 
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
@@ -647,12 +668,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.draw_pins(graphics_state);
 
             if (!this.ball_launched) {
-                if (!this.paused) {
-                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
-                    if (this.arrow_angle >= 2 * Math.PI) {
-                        this.arrow_angle = 0;
-                    }
-                }
+                // if (!this.paused) {
+                //     this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
+                //     if (this.arrow_angle >= 2 * Math.PI) {
+                //         this.arrow_angle = 0;
+                //     }
+                // }
+                this.arrow_angle = this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE;
                 this.draw_arrow(graphics_state, this.arrow_angle);
             }
 

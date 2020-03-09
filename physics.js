@@ -53,7 +53,6 @@ window.PhysicsObject = window.classes.PhysicsObject =
             if (this.force_vector.equals(Vec.of(0, 0, 0)))
                 return this.transform;
 
-            console.log("time constant " + this.time_constant);
             this.force_vector[2] =
                 this.force_vector[2] -
                 (this.damping_constant * graphics_state.animation_delta_time) * this.time_constant;
@@ -127,6 +126,9 @@ window.PhysicsObject = window.classes.PhysicsObject =
             // adjust angle of final forces on objects based on whether the collision was a glancing collision
             const o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o2);
             const o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o1);
+
+            console.log("final o1 force vector: " + PhysicsObject.calculate_x_y_z(o1.force_vector));
+            console.log("final o2 force vector: " + PhysicsObject.calculate_x_y_z(o2.force_vector));
 
             const ret = [o1_info, o2_info];
 
