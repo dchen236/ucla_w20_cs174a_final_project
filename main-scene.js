@@ -80,6 +80,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.translation(Vec.of(0, -3, 0)))
                 .times(Mat4.scale(Vec.of(this.floor_width / 2, 0.10, this.floor_height / 2)));
 
+        this.default_time_constant = 1.0;
+        this.slow_motion_time_constant = 0.1;
         this.collision_guide_length = 5;
         this.initial_collision_guide_transform =
             Mat4.identity()
@@ -108,7 +110,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 this.ball_damping,
                 this.ball_mass,
                 Mat4.identity(),
-                this.bowling_ball_radius);
+                this.bowling_ball_radius,
+                this.default_time_constant);
         this.pin_physics_objects = [];
         this.base_pin_transform =
             Mat4.identity()
@@ -130,6 +133,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
         ];
         this.free_play_mode = false;
+        this.slow_motion_toggle = false;
+        this.slow_motion = false;
 
         // initializations
         this.initialize_triangle_pins();
@@ -151,7 +156,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     .times(this.base_pin_transform);
                 this.initial_pin_transforms[i] = pin_transform;
                 this.pin_physics_objects[i] =
-                    new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius);
+                    new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius, this.default_time_constant);
                 this.num_pins++;
                 i++;
             }
@@ -200,6 +205,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.new_line();
         this.key_triggered_button("Toggle free play mode", ["-"], () =>
             this.free_play_mode = !this.free_play_mode
+        );
+        this.new_line();
+        this.key_triggered_button("Toggle slow motion", ["x"], () =>
+            this.slow_motion_toggle = true
         );
     }
 
@@ -454,7 +463,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(-radius, 0, 0))),
-                    radius
+                    radius,
+                    this.default_time_constant
                 )
             )
         }
@@ -467,7 +477,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(radius, 0, 0))),
-                    radius
+                    radius,
+                    this.default_time_constant
                 )
             )
         }
@@ -480,7 +491,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(0, 0, -radius))),
-                    radius
+                    radius,
+                    this.default_time_constant
                 )
             )
         }
@@ -493,7 +505,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(0, 0, radius))),
-                    radius
+                    radius,
+                    this.default_time_constant
                 )
             )
         }
@@ -520,8 +533,34 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         }
     }
 
+    sphere_to_sphere_adjust_center(o1, o2) {
+
+    }
+
+    toggle_slow_motion() {
+        this.slow_motion_toggle = false;
+        var new_time_constant;
+        if (this.slow_motion) {
+            this.slow_motion = false;
+            new_time_constant = this.default_time_constant;
+        }
+        else {
+            this.slow_motion = true;
+            new_time_constant = this.slow_motion_time_constant;
+        }
+        this.bowling_ball_physics_object.time_constant = new_time_constant;
+        for (let i = 0; i < this.pin_physics_objects.length; i++) {
+            this.pin_physics_objects[i].time_constant = new_time_constant;
+        }
+    }
+
     display( graphics_state )
     { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
+
+        if (this.slow_motion_toggle) {
+            this.toggle_slow_motion();
+        }
+
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
         if (this.launch_left == 0 && !this.game_over) {

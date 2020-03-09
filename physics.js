@@ -1,7 +1,7 @@
 
 window.PhysicsObject = window.classes.PhysicsObject =
     class PhysicsObject {
-        constructor(damping_constant, mass, center_transform, radius) {
+        constructor(damping_constant, mass, center_transform, radius, time_constant) {
             this.transform = Mat4.identity();
             this.force_vector = Vec.of(0, 0, 0);
             this.damping_constant = damping_constant;
@@ -9,6 +9,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             this.center = center_transform.times(Vec.of(0, 0, 0, 1));
             this.mass = mass;
             this.radius = radius;
+            this.time_constant = time_constant;
         }
 
         reset() {
@@ -52,7 +53,10 @@ window.PhysicsObject = window.classes.PhysicsObject =
             if (this.force_vector.equals(Vec.of(0, 0, 0)))
                 return this.transform;
 
-            this.force_vector[2] = this.force_vector[2] - (this.damping_constant * graphics_state.animation_delta_time);
+            console.log("time constant " + this.time_constant);
+            this.force_vector[2] =
+                this.force_vector[2] -
+                (this.damping_constant * graphics_state.animation_delta_time) * this.time_constant;
             if (this.force_vector[2] < 0)
                 this.force_vector[2] = 0;
             const force_vector_x_y_z = PhysicsObject.calculate_x_y_z(this.force_vector);
@@ -61,9 +65,9 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 Mat4.identity()
                     .times(Mat4.translation(
                         Vec.of(
-                            force_vector_x_y_z[0] * graphics_state.animation_delta_time,
-                            force_vector_x_y_z[1] * graphics_state.animation_delta_time,
-                            force_vector_x_y_z[2] * graphics_state.animation_delta_time)
+                            force_vector_x_y_z[0] * graphics_state.animation_delta_time * this.time_constant,
+                            force_vector_x_y_z[1] * graphics_state.animation_delta_time * this.time_constant,
+                            force_vector_x_y_z[2] * graphics_state.animation_delta_time * this.time_constant)
                         )
                     );
             this.transform = this.transform.times(delta_translation);
