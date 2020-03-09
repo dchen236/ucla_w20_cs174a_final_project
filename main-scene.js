@@ -17,14 +17,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
         const shapes = {
-            bowling_ball: new Subdivision_Sphere(3),
+            bowling_ball: new Subdivision_Sphere(5),
             floor: new Cube(),
             arrow: new Surface_Of_Revolution( 8, 8, Vec.cast(
                 [0, 1, 0], [0, 1, 1], [0, 1, 2],
                 [0, 1, 3], [0, 1, 4], [0, 2, 4],
                 [0, 1, 5], [0, 0, 7]
             )),
-            pin: new Subdivision_Sphere(4),
+            pin: new Subdivision_Sphere(5),
             score_text: new Text_Line(100),
             collision_guide: new Cube()
         };
