@@ -182,6 +182,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
             if (!this.ball_launched) {
+                this.collide_sound.pause();
                 this.launch_left-=1;
                 // this.ball_launched = true;
                 console.log("---");
