@@ -23,7 +23,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 [0, 1, 3], [0, 1, 4], [0, 2, 4],
                 [0, 1, 5], [0, 0, 7]
             )),
-            pin: new Cylindrical_Tube(20, 80),
+            pin: new Subdivision_Sphere(4),
             score_text: new Text_Line(100),
             collision_guide: new Cube()
         };
@@ -94,7 +94,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.pin_physics_objects = [];
         this.base_pin_transform =
             Mat4.identity()
-                .times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
+                //.times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
         this.initial_pin_transforms = [];
         this.lock_camera_on_ball = false;
