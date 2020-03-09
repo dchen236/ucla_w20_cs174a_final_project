@@ -24,6 +24,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 [0, 1, 5], [0, 0, 7]
             )),
             pin: new Cylindrical_Tube(20, 80),
+            score_text: new Text_Line(100),
             collision_guide: new Cube()
         };
         this.submit_shapes( context, shapes );
@@ -45,8 +46,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             collision_guide: context.get_instance( Phong_Shader ).material(Color.of(1, 0, 0, 1), {
                 ambient: 1,
                 diffusivity: 1,
-                specularity: 0
-            })
+                specularity: 0,
+            }),
+            text:  context.get_instance(Phong_Shader).material(Color.of(0,0,0,1),  {
+                ambient: 1,
+                diffusivity: 0,
+                specularity: 0,
+                texture: context.get_instance( "assets/text.png", false )})
+
         };
         this.collide_sound = new Audio("assets/collide_sound.mp3");
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
@@ -60,7 +67,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             Mat4.identity()
                 .times(Mat4.scale(Vec.of(0.1, 0.1, this.collision_guide_length / 2)))
                 .times(Mat4.translation(Vec.of(0, 0, this.collision_guide_length * 2)));
-
+        this.score = 0;
+        this.last_launch_time = 60 * 10;
+        this.game_over = false;
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
@@ -73,7 +82,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.pin_radius = 2;
         this.num_pins = 2;
         this.collide_adjust = 0.2;
-
+        this.launch_left = 5;
         // game state
         this.bowling_ball_transform = Mat4.identity();
         this.bowling_ball_physics_object =
@@ -173,11 +182,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
             if (!this.ball_launched) {
-                this.ball_launched = true;
+                this.launch_left-=1;
+                // this.ball_launched = true;
                 console.log("---");
                 this.bowling_ball_physics_object.apply_force(
                     Vec.of(this.arrow_angle, 0, this.ball_speed)
                 );
+                this.collide_sound.play();
                 console.log("---");
 
             }
@@ -253,7 +264,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     draw_arrow(graphics_state, arrow_angle) {
         this.shapes.arrow.draw(
             graphics_state,
-            Mat4.identity()
+            this.bowling_ball_physics_object.get_transform(graphics_state)
                 .times(Mat4.scale(Vec.of(0.5, 0.5, 1)))
                 .times(Mat4.rotation(arrow_angle, Vec.of(0, 1, 0))),
             this.materials.arrow
@@ -353,11 +364,12 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
     handle_collisions() {
         // check if ball collide 0th pin
+        let score_multiplier = 1;
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
             if (this.check_if_collide(this.pin_physics_objects[i], this.bowling_ball_physics_object) ) {
-                this.should_play_sound = true;
                 console.log("did ball to pin collide");
-                this.collide_sound.play();
+                this.score += 1 * score_multiplier;
+                score_multiplier += 2;
                 this.do_collision(this.bowling_ball_physics_object, this.pin_physics_objects[i]);
             }
         }
@@ -367,6 +379,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     !this.pin_physics_objects[j].force_vector.equals(Vec.of(0, 0, 0))) {
                     if (this.check_if_collide(this.pin_physics_objects[i], this.pin_physics_objects[j])) {
                         console.log("did pin to pin collide, index " + i + " to index " + j);
+                        this.score += 1 * score_multiplier;
+                        score_multiplier *= 2;
                         this.do_collision(this.pin_physics_objects[i], this.pin_physics_objects[j]);
                     }
                 }
@@ -378,28 +392,51 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
-        if (this.reset) {
-            this.reset_scene(graphics_state);
-            this.reset = false;
+        if (this.launch_left == 0 && !this.game_over) {
+            this.game_over = true;
+            this.last_launch_time = t;
         }
 
-        this.draw_static_scene(graphics_state);
+        if (this.launch_left > 0 || t < this.last_launch_time + 2) {
+            if (this.reset) {
+                this.reset_scene(graphics_state);
+                this.reset = false;
+            }
+            this.draw_static_scene(graphics_state);
 
-        this.draw_ball(graphics_state);
+            this.draw_ball(graphics_state);
 
-        this.draw_pins(graphics_state);
+            this.draw_pins(graphics_state);
 
-        if (!this.ball_launched) {
-            this.arrow_angle =  Math.PI + (Math.PI / 1) * Math.sin(this.arrow_speed * t);
-            this.draw_arrow(graphics_state, this.arrow_angle);
+            if (!this.ball_launched) {
+                this.arrow_angle =  Math.PI + (Math.PI / 1) * Math.sin(this.arrow_speed * t);
+                this.draw_arrow(graphics_state, this.arrow_angle);
+            }
+
+            this.handle_collisions();
+
+            if (this.enable_collision_markers) {
+                this.draw_collision_results(graphics_state);
+            }
+
+            this.update_camera_transform(graphics_state);
+
+
+        }
+        else {
+
+            graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
+            this.shapes.score_text.set_string("  Your Score is " + this.score);
+            this.shapes.score_text.draw(graphics_state,
+                Mat4.identity().times(Mat4.identity()
+                    .times(Mat4.scale([3, 3 ,3]))
+                    .times(Mat4.rotation(- Math.PI  / 2 , Vec.of(1,0,0)))
+                    .times(Mat4.rotation(Math.PI  / 10 * Math.sin(t), Vec.of(0,0,1)))
+                    // .times(Mat4.rotation(-Math.PI * Math.sin(t ), Vec.of(1,0,1)))
+                    .times(Mat4.translation([-15,0,0]))),
+                this.materials.text);
         }
 
-        this.handle_collisions();
 
-        if (this.enable_collision_markers) {
-            this.draw_collision_results(graphics_state);
-        }
-
-        this.update_camera_transform(graphics_state);
     }
 }
