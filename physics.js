@@ -49,7 +49,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             return this.transform.times(this.center);
         }
 
-        get_transform(graphics_state) {
+        update_and_get_transform(graphics_state) {
             if (this.force_vector.equals(Vec.of(0, 0, 0)))
                 return this.transform;
 

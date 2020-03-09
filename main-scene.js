@@ -81,7 +81,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.scale(Vec.of(this.floor_width / 2, 0.10, this.floor_height / 2)));
 
         this.default_time_constant = 1.0;
-        this.slow_motion_time_constant = 0.1;
+        this.slow_motion_time_constant = 0.05;
+        this.current_time_constant = this.default_time_constant;
+        this.paused = false;
         this.collision_guide_length = 5;
         this.initial_collision_guide_transform =
             Mat4.identity()
@@ -103,6 +105,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.num_pins = 0;
         this.collide_adjust = 0.2;
         this.launch_left = 5;
+        this.arrow_speed = 2;
         // game state
         this.bowling_ball_transform = Mat4.identity();
         this.bowling_ball_physics_object =
@@ -132,7 +135,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             [Color.of(1, 0, 0, 1), Color.of(0, 1, 0, 1), Color.of(0, 0, 1, 1)], // normal, collision, reflection colors for o1
             [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
         ];
-        this.free_play_mode = false;
+        this.free_play_mode = true;
         this.slow_motion_toggle = false;
         this.slow_motion = false;
 
@@ -209,6 +212,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.new_line();
         this.key_triggered_button("Toggle slow motion", ["x"], () =>
             this.slow_motion_toggle = true
+        );
+        this.new_line();
+        this.key_triggered_button("Pause", ["p"], () =>
+            this.paused = !this.paused
         );
     }
 
@@ -305,9 +312,16 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     draw_arrow(graphics_state, arrow_angle) {
+        var transform;
+        if (this.paused) {
+            transform = this.bowling_ball_physics_object.transform;
+        }
+        else {
+            transform = this.bowling_ball_physics_object.update_and_get_transform(graphics_state);
+        }
         this.shapes.arrow.draw(
             graphics_state,
-            this.bowling_ball_physics_object.get_transform(graphics_state)
+            transform
                 .times(Mat4.scale(Vec.of(0.5, 0.5, 1)))
                 .times(Mat4.rotation(arrow_angle, Vec.of(0, 1, 0))),
             this.materials.arrow
@@ -315,9 +329,16 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     draw_ball(graphics_state) {
+        var transform;
+        if (this.paused) {
+            transform = this.bowling_ball_physics_object.transform;
+        }
+        else {
+            transform = this.bowling_ball_physics_object.update_and_get_transform(graphics_state);
+        }
         this.bowling_ball_transform =
             Mat4.identity().times(
-                this.bowling_ball_physics_object.get_transform(graphics_state)
+                transform
             );
         this.shapes.bowling_ball.draw(
             graphics_state,
@@ -329,12 +350,18 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     draw_pins(graphics_state) {
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
             let image_filename = `assets/ball_${i+1}.jpg`;
-            let material = this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
+            let material =
+                this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
+            var transform;
+            if (this.paused) {
+                transform = this.pin_physics_objects[i].transform;
+            }
+            else {
+                transform = this.pin_physics_objects[i].update_and_get_transform(graphics_state);
+            }
             this.shapes.pin.draw(
                 graphics_state,
-                this.pin_physics_objects[i]
-                    .get_transform(graphics_state)
-                    .times(this.initial_pin_transforms[i]),
+                transform.times(this.initial_pin_transforms[i]),
                 material
             );
         }
@@ -539,18 +566,17 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
     toggle_slow_motion() {
         this.slow_motion_toggle = false;
-        var new_time_constant;
         if (this.slow_motion) {
             this.slow_motion = false;
-            new_time_constant = this.default_time_constant;
+            this.current_time_constant = this.default_time_constant;
         }
         else {
             this.slow_motion = true;
-            new_time_constant = this.slow_motion_time_constant;
+            this.current_time_constant = this.slow_motion_time_constant;
         }
-        this.bowling_ball_physics_object.time_constant = new_time_constant;
+        this.bowling_ball_physics_object.time_constant = this.current_time_constant;
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
-            this.pin_physics_objects[i].time_constant = new_time_constant;
+            this.pin_physics_objects[i].time_constant = this.current_time_constant;
         }
     }
 
@@ -580,13 +606,19 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.draw_pins(graphics_state);
 
             if (!this.ball_launched) {
-                this.arrow_angle =  Math.PI + (Math.PI / 1) * Math.sin(this.arrow_speed * t);
+                if (!this.paused) {
+                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
+                    if (this.arrow_angle >= 2 * Math.PI) {
+                        this.arrow_angle = 0;
+                    }
+                }
                 this.draw_arrow(graphics_state, this.arrow_angle);
             }
 
-            this.handle_ball_collisions();
-
-            this.handle_wall_collisions();
+            if (!this.paused) {
+                this.handle_ball_collisions();
+                this.handle_wall_collisions();
+            }
 
             if (this.enable_collision_markers) {
                 this.draw_collision_results(graphics_state);
