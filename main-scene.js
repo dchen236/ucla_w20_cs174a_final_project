@@ -163,10 +163,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
         ];
         this.free_play_mode = true;
-        this.slow_motion_toggle = true;
+        this.slow_motion_toggle = false;
         this.slow_motion = false;
         this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE = 3.1800250415135047;
-        this.auto_pause_on_collision_toggle = true;
+        this.auto_pause_on_collision_toggle = false;
         this.auto_pause_on_collision = false;
 
         // initializations
@@ -668,13 +668,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.draw_pins(graphics_state);
 
             if (!this.ball_launched) {
-                // if (!this.paused) {
-                //     this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
-                //     if (this.arrow_angle >= 2 * Math.PI) {
-                //         this.arrow_angle = 0;
-                //     }
-                // }
-                this.arrow_angle = this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE;
+                if (!this.paused) {
+                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
+                    if (this.arrow_angle >= 2 * Math.PI) {
+                        this.arrow_angle = 0;
+                    }
+                }
+                //this.arrow_angle = this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE;
                 this.draw_arrow(graphics_state, this.arrow_angle);
             }
 
