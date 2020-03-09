@@ -2,6 +2,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     class Assignment_Four_Scene extends Scene_Component
     { constructor( context, control_box )     // The scene begins by requesting the camera, shapes, and materials it will need.
     { super(   context, control_box );    // First, include a secondary Scene that provides movement controls:
+        this.context = context;
         if( !context.globals.has_controls   )
             context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) );
 
@@ -42,6 +43,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 ambient: 0.8,
                 texture: context.get_instance("assets/pin_texture.png", true)
             }),
+            billiards_ball: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
+                ambient: 0.9,
+                texture: context.get_instance("assets/ball_1.jpg", true)
+            }),
             collision_guide: context.get_instance( Phong_Shader ).material(Color.of(1, 0, 0, 1), {
                 ambient: 1,
                 diffusivity: 1,
@@ -54,6 +59,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 texture: context.get_instance( "assets/text.png", false )})
 
         };
+
         this.collide_sound = new Audio("assets/collide_sound.mp3");
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
         this.floor_width = 60;
@@ -312,12 +318,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
     draw_pins(graphics_state) {
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
+            let image_filename = `assets/ball_${i+1}.jpg`;
+            let material = this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
             this.shapes.pin.draw(
                 graphics_state,
                 this.pin_physics_objects[i]
                     .get_transform(graphics_state)
                     .times(this.initial_pin_transforms[i]),
-                this.materials.pin
+                material
             );
         }
     }
