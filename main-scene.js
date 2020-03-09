@@ -33,8 +33,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             bowling_ball: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.8
             }),
-            floor: context.get_instance( Phong_Shader ).material(Color.of(0, 1, 0, 1), {
-                ambient: 1
+            floor: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 1,
+                texture: context.get_instance("assets/green_felt.jpg", true)
             }),
             arrow: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 1, 0.8), {
                 ambient: 1
@@ -56,8 +57,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 ambient: 1,
                 diffusivity: 0,
                 specularity: 0,
-                texture: context.get_instance( "assets/text.png", false )})
-
+                texture: context.get_instance( "assets/text.png", false )}),
+            wall: context.get_instance( Phong_Shader ).material(Color.of(0, 1, 0, 1), {
+                ambient: 1
+            })
         };
 
         this.collide_sound = new Audio("assets/collide_sound.mp3");
