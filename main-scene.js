@@ -80,25 +80,25 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.translation(Vec.of(0, -3, 0)))
                 .times(Mat4.scale(Vec.of(this.floor_width / 2, 0.10, this.floor_height / 2)));
 
-        this.collision_guide_length = 1;
+        this.collision_guide_length = 5;
         this.initial_collision_guide_transform =
             Mat4.identity()
-                .times(Mat4.scale(Vec.of(0.1, 0.1, this.collision_guide_length / 2)))
-                .times(Mat4.translation(Vec.of(0, 0, this.collision_guide_length * 2)));
+                .times(Mat4.translation(Vec.of(0, 0, this.collision_guide_length / 4)))
+                .times(Mat4.scale(Vec.of(0.1, 0.1, this.collision_guide_length / 2)));
         this.score = 0;
         this.last_launch_time = 60 * 10;
         this.game_over = false;
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
-        this.floor_damping = .00002;
+        this.floor_damping = 0;
         this.ball_damping = this.floor_damping;
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
         this.pin_mass = 2;
         this.bowling_ball_radius = 1;
         this.pin_radius = 2;
-        this.num_pins = 2;
+        this.num_pins = 0;
         this.collide_adjust = 0.2;
         this.launch_left = 5;
         // game state
@@ -124,9 +124,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // testing state
         this.collision_results = [];
         this.enable_collision_markers = false;
+        this.collision_guide_colors = [
+            [Color.of(1, 0, 0, 1), Color.of(0, 1, 0, 1), Color.of(0, 0, 1, 1)], // normal, collision, reflection colors for o1
+            [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
+        ]
 
         // initializations
-        this.initialize_triangle_pins();
+        //this.initialize_triangle_pins();
 
     }
 
@@ -227,7 +231,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
             if (!this.ball_launched && this.launch_left > 0) {
-                this.launch_left-=1;
+                //this.launch_left-=1;
                 // this.ball_launched = true;
                 console.log("---");
                 this.bowling_ball_physics_object.apply_force(
@@ -400,7 +404,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(this.collision_results[i][j][0])
                         .times(this.collision_results[i][j][1])
                         .times(this.initial_collision_guide_transform),
-                    this.materials.collision_guide
+                    this.materials.collision_guide.override({
+                        color: this.collision_guide_colors[j][0]
+                    })
                 );
                 this.shapes.collision_guide.draw(
                     graphics_state,
@@ -409,7 +415,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(this.collision_results[i][j][2])
                         .times(this.initial_collision_guide_transform),
                     this.materials.collision_guide.override({
-                        color: Color.of(0, 1, 0, 1)
+                        color: this.collision_guide_colors[j][1]
                     })
                 );
                 this.shapes.collision_guide.draw(
@@ -420,7 +426,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(this.initial_collision_guide_transform)
                         .times(Mat4.translation(Vec.of(0, 0.5, 0))),
                     this.materials.collision_guide.override({
-                        color: Color.of(0, 0, 1, 1)
+                        color: this.collision_guide_colors[j][2]
                     })
                 );
             }
@@ -485,17 +491,18 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
     handle_wall_collisions() {
         // check if the main ball has collided with walls
-        this.check_wall_collision(this.bowling_ball_physics_object);
+        this.do_wall_collision(this.bowling_ball_physics_object);
 
         // check if any pins have collided with the walls
         for (let i = 0; i < this.pin_physics_objects.length - 1; i++) {
             if (!this.pin_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0))) {
-                this.check_wall_collision(this.pin_physics_objects[i]);
+                this.do_wall_collision(this.pin_physics_objects[i]);
             }
         }
     }
 
-    check_wall_collision(o) {
+    do_wall_collision(o) {
+        this.wall_adjust_center(o);
         const center = o.get_center();
         const radius = o.radius;
         // collision with left wall
@@ -549,6 +556,27 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     radius
                 )
             )
+        }
+    }
+
+    wall_adjust_center(o) {
+        const center = o.get_center();
+        const radius = o.radius;
+        // outside left wall bounds
+        if (center[0] - radius <= - this.floor_width / 2) {
+            o.transform[0][3] = - this.floor_width / 2 + radius;
+        }
+        // outside right wall bounds
+        if (center[0] + radius >= this.floor_width / 2) {
+            o.transform[0][3] = this.floor_width / 2 - radius;
+        }
+        // outside bottom wall bounds
+        if (center[2] + radius >= this.floor_height / 2) {
+            o.transform[2][3] = this.floor_height / 2 - radius;
+        }
+        // outside top wall bounds
+        if (center[2] - radius <= -this.floor_height/2) {
+            o.transform[2][3] = - this.floor_height / 2 + radius;
         }
     }
 
