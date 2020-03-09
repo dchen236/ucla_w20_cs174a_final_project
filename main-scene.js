@@ -181,8 +181,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     make_control_panel()
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
-            if (!this.ball_launched) {
-                this.collide_sound.pause();
+            if (!this.ball_launched && this.launch_left > 0) {
                 this.launch_left-=1;
                 // this.ball_launched = true;
                 console.log("---");
@@ -398,7 +397,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.last_launch_time = t;
         }
 
-        if (this.launch_left > 0 || t < this.last_launch_time + 2) {
+        if (this.launch_left > 0 || t < this.last_launch_time + 1) {
             if (this.reset) {
                 this.reset_scene(graphics_state);
                 this.reset = false;
