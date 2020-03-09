@@ -48,6 +48,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 specularity: 0
             })
         };
+        this.collide_sound = new Audio("assets/collide_sound.mp3");
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
         this.floor_size = 30;
         this.floor_transform =
@@ -110,7 +111,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.initial_pin_transforms[i] = pin_transform;
             this.pin_physics_objects[i] = new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius);
         }
-        console.log("ball initalization:" + this.bowling_ball_physics_object.center)
+        // console.log("ball initalization:" + this.bowling_ball_physics_object.center)
     }
 
     initialize_large_test_pins() {
@@ -329,36 +330,37 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     check_if_collide(o1, o2) {
-        console.log("collision check: ");
+        // console.log("collision check: ");
         let o1_center = o1.get_center();
         let o2_center = o2.get_center();
         let distance = this.get_distance(o1_center, o2_center);
-        console.log("o1 center: " + o1_center);
-        console.log("o2 center: " + o2_center);
-        console.log("o1 radius: " + o1.radius);
-        console.log("o2 radius: " + o2.radius);
-        console.log("distance: " + distance);
+        // console.log("o1 center: " + o1_center);
+        // console.log("o2 center: " + o2_center);
+        // console.log("o1 radius: " + o1.radius);
+        // console.log("o2 radius: " + o2.radius);
+        // console.log("distance: " + distance);
         return distance <= o1.radius + o2.radius + this.collide_adjust;
     }
 
     do_collision(o1, o2) {
         const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2);
         this.collision_results.push(collision_result);
-        console.log("o1 center: " + o1.get_center());
-        console.log("o2 center: " + o2.get_center());
-        console.log("o1 force vector: " + o1.force_vector);
-        console.log("o2 force vector: " + o2.force_vector);
+        // console.log("o1 center: " + o1.get_center());
+        // console.log("o2 center: " + o2.get_center());
+        // console.log("o1 force vector: " + o1.force_vector);
+        // console.log("o2 force vector: " + o2.force_vector);
     }
 
     handle_collisions() {
         // check if ball collide 0th pin
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
             if (this.check_if_collide(this.pin_physics_objects[i], this.bowling_ball_physics_object) ) {
+                this.should_play_sound = true;
                 console.log("did ball to pin collide");
+                this.collide_sound.play();
                 this.do_collision(this.bowling_ball_physics_object, this.pin_physics_objects[i]);
             }
         }
-
         for (let i = 0; i < this.pin_physics_objects.length - 1; i++) {
             for (let j = i + 1; j < this.pin_physics_objects.length; j++) {
                 if (!this.pin_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0)) ||
