@@ -26,12 +26,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             )),
             pin: new Subdivision_Sphere(5),
             score_text: new Text_Line(100),
-            collision_guide: new Cube()
+            collision_guide: new Cube(),
+            wall: new Cube()
         };
         this.submit_shapes( context, shapes );
         this.materials = {
             bowling_ball: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
-                ambient: 0.8
+                ambient: 0.8,
+                texture: context.get_instance("assets/BallCue.jpg", true)
             }),
             floor: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 1,
@@ -58,8 +60,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 diffusivity: 0,
                 specularity: 0,
                 texture: context.get_instance( "assets/text.png", false )}),
-            wall: context.get_instance( Phong_Shader ).material(Color.of(0, 1, 0, 1), {
-                ambient: 1
+            wall: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 1,
+                texture: context.get_instance("assets/wood_texture.jpg", true)
             })
         };
 
@@ -71,6 +74,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(0, -3, 0)))
                 .times(Mat4.scale(Vec.of(this.floor_width / 2, 0.10, this.floor_height / 2)));
+
         this.collision_guide_length = 1;
         this.initial_collision_guide_transform =
             Mat4.identity()
@@ -88,7 +92,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.ball_mass = 1;
         this.pin_mass = 2;
         this.bowling_ball_radius = 1;
-        this.pin_radius = 1;
+        this.pin_radius = 2;
         this.num_pins = 2;
         this.collide_adjust = 0.2;
         this.launch_left = 5;
@@ -103,7 +107,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.pin_physics_objects = [];
         this.base_pin_transform =
             Mat4.identity()
-                //.times(Mat4.scale(Vec.of(this.pin_radius, 5, this.pin_radius)))
+                .times(Mat4.scale(Vec.of(this.pin_radius, this.pin_radius, this.pin_radius)))
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
         this.initial_pin_transforms = [];
         this.lock_camera_on_ball = false;
@@ -192,7 +196,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     initialize_triangle_pins() {
-        let ball_spacing = 3;
+        let ball_spacing = 5;
         let x_initial = 0;
         let z_initial = -3;
         let triangle_height = 3;
@@ -261,7 +265,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             desired =
                 Mat4.inverse(
                     this.bowling_ball_transform
-                        .times(Mat4.translation(Vec.of(0, 0, 5)))
+                        .times(Mat4.translation(Vec.of(0, 5, 15)))
                 );
             graphics_state.camera_transform =
                 desired.map((x, i) =>
@@ -295,6 +299,47 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.floor_transform,
             this.materials.floor
         );
+        this.wall_transform_north =
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(0, -3, this.floor_height/2)))
+                .times(Mat4.scale(Vec.of(this.floor_width / 2, 5, 1)));
+        this.wall_transform_south =
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(0, -3, -1 * this.floor_height/2)))
+                .times(Mat4.scale(Vec.of(this.floor_width / 2, 5, 1)));
+        this.wall_transform_west =
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(this.floor_width/2, -3, 0)))
+                .times(Mat4.scale(Vec.of(1, 5, this.floor_height/2 + 1)));
+        this.wall_transform_east =
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-1 * this.floor_width/2, -3, 0)))
+                .times(Mat4.scale(Vec.of(1, 5, this.floor_height/2 + 1)));
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_north,
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_south,
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_west,
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_east,
+            this.materials.wall
+        );
+
     }
 
     draw_arrow(graphics_state, arrow_angle) {
