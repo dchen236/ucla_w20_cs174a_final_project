@@ -27,7 +27,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             pin: new Subdivision_Sphere(5),
             score_text: new Text_Line(100),
             collision_guide: new Cube(),
-            wall: new Cube()
+            wall: new Cube(),
+            bounding_cube: new Cube()
         };
         this.submit_shapes( context, shapes );
         this.materials = {
@@ -63,6 +64,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             wall: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 1,
                 texture: context.get_instance("assets/wood_texture.jpg", true)
+            }),
+            bounding_cube: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 1,
+                texture: context.get_instance("assets/casino.jpg", true)
             })
         };
 
@@ -294,6 +299,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     draw_static_scene(graphics_state) {
+        let scale_factor = 200;
+        this.bounding_cube_transform =  Mat4.identity().times(Mat4.scale(Vec.of(scale_factor,scale_factor,scale_factor)));
+        this.shapes.bounding_cube.draw(
+            graphics_state,
+            this.bounding_cube_transform,
+            this.materials.bounding_cube
+        );
         this.shapes.floor.draw(
             graphics_state,
             this.floor_transform,
