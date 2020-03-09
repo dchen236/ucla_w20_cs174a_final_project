@@ -129,7 +129,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.bowling_ball_radius = 1;
         this.pin_radius = 2;
         this.num_pins = 0;
-        this.collide_adjust = 0.2;
+        this.collide_adjust = 0;
         this.launch_left = 5;
         this.arrow_speed = 2;
 
@@ -141,7 +141,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 this.ball_mass,
                 Mat4.identity(),
                 this.bowling_ball_radius,
-                this.default_time_constant);
+                this.default_time_constant,
+                "launch ball");
         this.pin_physics_objects = [];
         this.base_pin_transform =
             Mat4.identity()
@@ -163,10 +164,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
         ];
         this.free_play_mode = true;
-        this.slow_motion_toggle = false;
+        this.slow_motion_toggle = true;
         this.slow_motion = false;
         this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE = 3.1800250415135047;
-        this.auto_pause_on_collision_toggle = false;
+        this.auto_pause_on_collision_toggle = true;
         this.auto_pause_on_collision = false;
 
         // initializations
@@ -189,7 +190,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     .times(this.base_pin_transform);
                 this.initial_pin_transforms[i] = pin_transform;
                 this.pin_physics_objects[i] =
-                    new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius, this.default_time_constant);
+                    new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius, this.default_time_constant,
+                        "pin " + i);
                 this.num_pins++;
                 i++;
             }
@@ -469,12 +471,16 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         let o1_center = o1.get_center();
         let o2_center = o2.get_center();
         let distance = this.get_distance(o1_center, o2_center);
-        // console.log("o1 center: " + o1_center);
-        // console.log("o2 center: " + o2_center);
-        // console.log("o1 radius: " + o1.radius);
-        // console.log("o2 radius: " + o2.radius);
-        // console.log("distance: " + distance);
-        return distance <= o1.radius + o2.radius + this.collide_adjust;
+        const found_collision = distance <= o1.radius + o2.radius + this.collide_adjust;
+        if (found_collision) {
+            console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]:");
+            console.log(o1.object_tag + " center: " + o1_center);
+            console.log(o2.object_tag + " center: " + o2_center);
+            console.log(o1.object_tag + " radius: " + o1.radius);
+            console.log(o2.object_tag + " radius: " + o2.radius);
+            console.log("distance: " + distance);
+        }
+        return found_collision;
     }
 
     do_collision(o1, o2) {
@@ -486,17 +492,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         if (this.auto_pause_on_collision) {
             this.paused = true;
         }
-        // console.log("o1 center: " + o1.get_center());
-        // console.log("o2 center: " + o2.get_center());
-        // console.log("o1 force vector: " + o1.force_vector);
-        // console.log("o2 force vector: " + o2.force_vector);
     }
 
     handle_ball_collisions() {
         // check if ball collide 0th pin
         let score_multiplier = 1;
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
-            if (this.check_if_collide(this.pin_physics_objects[i], this.bowling_ball_physics_object) ) {
+            if (this.check_if_collide(this.bowling_ball_physics_object, this.pin_physics_objects[i]) ) {
                 console.log("did ball to pin collide");
                 this.score += 1 * score_multiplier;
                 score_multiplier += 2;
@@ -544,7 +546,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(-radius, 0, 0))),
                     radius,
-                    this.default_time_constant
+                    this.default_time_constant,
+                    "phantom ball (left wall)"
                 )
             )
         }
@@ -558,7 +561,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(radius, 0, 0))),
                     radius,
-                    this.default_time_constant
+                    this.default_time_constant,
+                    "phantom ball (right wall)"
                 )
             )
         }
@@ -572,7 +576,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(0, 0, -radius))),
                     radius,
-                    this.default_time_constant
+                    this.default_time_constant,
+                    "phantom ball (bottom wall)"
                 )
             )
         }
@@ -586,7 +591,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
                         .times(Mat4.translation(Vec.of(0, 0, radius))),
                     radius,
-                    this.default_time_constant
+                    this.default_time_constant,
+                    "phantom ball (top wall)"
                 )
             )
         }
@@ -668,13 +674,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.draw_pins(graphics_state);
 
             if (!this.ball_launched) {
-                if (!this.paused) {
-                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
-                    if (this.arrow_angle >= 2 * Math.PI) {
-                        this.arrow_angle = 0;
-                    }
-                }
-                //this.arrow_angle = this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE;
+                // if (!this.paused) {
+                //     this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
+                //     if (this.arrow_angle >= 2 * Math.PI) {
+                //         this.arrow_angle = 0;
+                //     }
+                // }
+                this.arrow_angle = this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE;
                 this.draw_arrow(graphics_state, this.arrow_angle);
             }
 

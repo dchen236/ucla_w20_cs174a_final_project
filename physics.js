@@ -1,7 +1,8 @@
 
 window.PhysicsObject = window.classes.PhysicsObject =
     class PhysicsObject {
-        constructor(damping_constant, mass, center_transform, radius, time_constant) {
+        constructor(damping_constant, mass, center_transform, radius, time_constant,
+                    object_tag) {
             this.transform = Mat4.identity();
             this.force_vector = Vec.of(0, 0, 0);
             this.damping_constant = damping_constant;
@@ -10,6 +11,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             this.mass = mass;
             this.radius = radius;
             this.time_constant = time_constant;
+            this.object_tag = object_tag;
         }
 
         reset() {
@@ -23,7 +25,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 return;
 
             if (force_vector[0] < 0 || force_vector[0] > 2 * Math.PI) {
-                console.log("apply_force only takes positive angles between 0 and 2pi, " + force_vector[0] + " is invalid");
+                console.log("[" + this.object_tag + "]: apply_force only takes positive angles between 0 and 2pi, " + force_vector[0] + " is invalid");
                 return;
             }
 
@@ -127,8 +129,8 @@ window.PhysicsObject = window.classes.PhysicsObject =
             const o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o2);
             const o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o1);
 
-            console.log("final o1 force vector: " + PhysicsObject.calculate_x_y_z(o1.force_vector));
-            console.log("final o2 force vector: " + PhysicsObject.calculate_x_y_z(o2.force_vector));
+            console.log("final [" + o1.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o1.force_vector));
+            console.log("final [" + o2.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o2.force_vector));
 
             const ret = [o1_info, o2_info];
 
@@ -155,7 +157,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             console.log("---");
             console.log("collision normal: " + normal);
             console.log("normal theta: " + (normal_theta * (180 / Math.PI)));
-            console.log("o1_fv_x_y_z_init: " + o1_fv_x_y_z_init);
+            console.log("[" + o1.object_tag + "] fv_x_y_z_init: " + o1_fv_x_y_z_init);
             console.log("zx collision theta: " + (zx_collision_theta * 180 / Math.PI));
             console.log("normal_rotation: " + normal_rotation * 180 / Math.PI);
             console.log("collision_rotation: " + collision_rotation * 180 / Math.PI);
