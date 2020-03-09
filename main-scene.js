@@ -130,7 +130,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         ]
 
         // initializations
-        //this.initialize_triangle_pins();
+        this.initialize_triangle_pins();
 
     }
 
@@ -494,7 +494,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.do_wall_collision(this.bowling_ball_physics_object);
 
         // check if any pins have collided with the walls
-        for (let i = 0; i < this.pin_physics_objects.length - 1; i++) {
+        for (let i = 0; i < this.pin_physics_objects.length; i++) {
             if (!this.pin_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0))) {
                 this.do_wall_collision(this.pin_physics_objects[i]);
             }
@@ -564,19 +564,19 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         const radius = o.radius;
         // outside left wall bounds
         if (center[0] - radius <= - this.floor_width / 2) {
-            o.transform[0][3] = - this.floor_width / 2 + radius;
+            o.transform[0][3] = - this.floor_width / 2 + radius - o.center[0];
         }
         // outside right wall bounds
         if (center[0] + radius >= this.floor_width / 2) {
-            o.transform[0][3] = this.floor_width / 2 - radius;
+            o.transform[0][3] = this.floor_width / 2 - radius - o.center[0] ;
         }
         // outside bottom wall bounds
         if (center[2] + radius >= this.floor_height / 2) {
-            o.transform[2][3] = this.floor_height / 2 - radius;
+            o.transform[2][3] = this.floor_height / 2 - radius - o.center[2];
         }
         // outside top wall bounds
         if (center[2] - radius <= -this.floor_height/2) {
-            o.transform[2][3] = - this.floor_height / 2 + radius;
+            o.transform[2][3] = - this.floor_height / 2 + radius - o.center[2];
         }
     }
 
