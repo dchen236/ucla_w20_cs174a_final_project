@@ -150,6 +150,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
         this.initial_pin_transforms = [];
         this.lock_camera_on_ball = false;
+        this.lock_camera_on_pin = false;
+        this.pin_camera_index = 0;
         this.initial_camera_reset = false;
         this.arrow_angle = 0;
         this.ball_launched = false;
@@ -166,7 +168,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.free_play_mode = true;
         this.slow_motion_toggle = true;
         this.slow_motion = false;
-        this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE = 3.1800250415135047;
+        this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE = 3.1800250415135047; // with collide_adjust = 0.21
         this.auto_pause_on_collision_toggle = true;
         this.auto_pause_on_collision = false;
 
@@ -217,8 +219,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             }
         });
         this.new_line();
-        this.key_triggered_button("Lock Camera On Ball", ["i"], () =>
-            this.lock_camera_on_ball = !this.lock_camera_on_ball
+        this.key_triggered_button("Lock Camera On Main Ball", ["i"], () => {
+                this.lock_camera_on_ball = !this.lock_camera_on_ball;
+                this.lock_camera_on_pin = false;
+            }
         );
         this.new_line();
         this.key_triggered_button("Cycle Static Camera Positions", ["j"], () => {
@@ -254,6 +258,22 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.key_triggered_button("Toggle auto-pause on collision", ["["], () =>
             this.auto_pause_on_collision_toggle = true
         );
+        this.new_line();
+        this.key_triggered_button("Focus camera on pin", ["]"], () => {
+                this.lock_camera_on_ball = false;
+                if (this.lock_camera_on_pin) {
+                    if (this.pin_camera_index == 8) {
+                        this.pin_camera_index = 0;
+                    }
+                    else {
+                        this.pin_camera_index++;
+                    }
+                }
+                else {
+                    this.lock_camera_on_pin = true;
+                }
+            }
+        );
     }
 
     update_camera_transform(graphics_state) {
@@ -264,7 +284,21 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             desired =
                 Mat4.inverse(
                     this.bowling_ball_transform
-                        .times(Mat4.translation(Vec.of(0, 5, 15)))
+                        .times(Mat4.translation(Vec.of(0, 20, 0)))
+                        .times(Mat4.rotation(- Math.PI / 2, Vec.of(1, 0, 0)))
+                );
+            graphics_state.camera_transform =
+                desired.map((x, i) =>
+                    Vec.from(graphics_state.camera_transform[i]).mix(x, blending_factor));
+        }
+        else if (this.lock_camera_on_pin) {
+            this.initial_camera_reset = true;
+            desired =
+                Mat4.inverse(
+                    this.pin_physics_objects[this.pin_camera_index].transform
+                        .times(this.initial_pin_transforms[this.pin_camera_index])
+                        .times(Mat4.translation(Vec.of(0, 0, -10)))
+                        .times(Mat4.rotation(Math.PI, Vec.of(1, 0, 0)))
                 );
             graphics_state.camera_transform =
                 desired.map((x, i) =>
@@ -483,14 +517,16 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         return found_collision;
     }
 
-    do_collision(o1, o2) {
+    do_collision(o1, o2, wall_collision) {
         const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2);
         this.collision_results.push(collision_result);
         while (this.collision_results.length > this.max_collision_results_history_size) {
             this.collision_results.shift();
         }
-        if (this.auto_pause_on_collision) {
-            this.paused = true;
+        if (!wall_collision) {
+            if (this.auto_pause_on_collision) {
+                this.paused = true;
+            }
         }
     }
 
@@ -502,7 +538,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 console.log("did ball to pin collide");
                 this.score += 1 * score_multiplier;
                 score_multiplier += 2;
-                this.do_collision(this.bowling_ball_physics_object, this.pin_physics_objects[i]);
+                this.do_collision(this.bowling_ball_physics_object, this.pin_physics_objects[i], false);
             }
         }
         for (let i = 0; i < this.pin_physics_objects.length - 1; i++) {
@@ -513,7 +549,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         console.log("did pin to pin collide, index " + i + " to index " + j);
                         this.score += 1 * score_multiplier;
                         score_multiplier *= 2;
-                        this.do_collision(this.pin_physics_objects[i], this.pin_physics_objects[j]);
+                        this.do_collision(this.pin_physics_objects[i], this.pin_physics_objects[j], false);
                     }
                 }
             }
@@ -538,7 +574,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         const radius = o.radius;
         // collision with left wall
         if (center[0] - radius <= - this.floor_width / 2) {
-            this.do_collision(o,
+            this.do_collision(
+                o,
                 new PhysicsObject(
                     this.floor_damping,
                     999,
@@ -548,12 +585,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     radius,
                     this.default_time_constant,
                     "phantom ball (left wall)"
-                )
+                ),
+                true
             )
         }
         // collision with right wall
         else if (center[0] + radius >= this.floor_width / 2) {
-            this.do_collision(o,
+            this.do_collision(
+                o,
                 new PhysicsObject(
                     this.floor_damping,
                     999,
@@ -563,12 +602,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     radius,
                     this.default_time_constant,
                     "phantom ball (right wall)"
-                )
+                ),
+                true
             )
         }
         // collision with bottom wall
         else if (center[2] + radius >= this.floor_height / 2) {
-            this.do_collision(o,
+            this.do_collision(
+                o,
                 new PhysicsObject(
                     this.floor_damping,
                     999,
@@ -578,12 +619,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     radius,
                     this.default_time_constant,
                     "phantom ball (bottom wall)"
-                )
+                ),
+                true
             )
         }
         // collision with top wall
         else if (center[2] - radius <= -this.floor_height/2) {
-            this.do_collision(o,
+            this.do_collision(
+                o,
                 new PhysicsObject(
                     this.floor_damping,
                     999,
@@ -593,7 +636,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     radius,
                     this.default_time_constant,
                     "phantom ball (top wall)"
-                )
+                ),
+                true
             )
         }
     }
