@@ -125,9 +125,39 @@ window.PhysicsObject = window.classes.PhysicsObject =
             o1.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[0], vf_y[0], vf_z[0]));
             o2.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[1], vf_y[1], vf_z[1]));
 
+            // calculate object centers, collision normal
+            const o1_center = o1.get_center();
+            const o2_center = o2.get_center();
+            const normal_vector = o2_center.minus(o1_center);
+            const normal = Vec.of(normal_vector[0], normal_vector[1], normal_vector[2]);
+            const normal_perpendicular = Vec.of(-normal[2], normal[1], normal[0]);
+
+            // check whether collision is type 1 (init fv's on opposite side of collision normal)
+            // or type 2 (init fv's on same side of collision normal)
+            if (!o1_fv_x_y_z_init.equals(Vec.of(0, 0, 0)) && !o2_fv_x_y_z_init.equals(Vec.of(0, 0, 0)) &&
+                PhysicsObject.is_right(Vec.of(0, 0, 0,), normal_perpendicular, o1_fv_x_y_z_init) ==
+                PhysicsObject.is_right(Vec.of(0, 0, 0,), normal_perpendicular, o2_fv_x_y_z_init)) {
+                console.log("TYPE 2 collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]");
+                console.log("")
+            }
+            else {
+                console.log("TYPE 1 collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]");
+            }
+
+
             // adjust angle of final forces on objects based on whether the collision was a glancing collision
-            const o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o2);
-            const o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o1);
+            const o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o1_center, o2, normal);
+            const o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o2_center, o1, normal.times(-1));
+
+            // adjust center of o1 to avoid subsequent incorrect collision calculations
+            const distance = Math.sqrt(normal_vector[0]**2 + normal_vector[1]**2 + normal_vector[2]**2);
+            const overlap = o1.radius + o2.radius - distance;
+            const offset_vector = PhysicsObject.calculate_x_y_z(Vec.of(o1.force_vector[0], 0, overlap));
+            console.log("overlap between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + overlap);
+            console.log("adjusting center of [" + o1.object_tag + "] by offset vector " + offset_vector);
+            o1.transform[0][3] += offset_vector[0];
+            o1.transform[1][3] += offset_vector[1];
+            o1.transform[2][3] += offset_vector[2];
 
             console.log("final [" + o1.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o1.force_vector));
             console.log("final [" + o2.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o2.force_vector));
@@ -137,11 +167,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             return ret;
         }
 
-        static update_object_fv_angle(o1_fv_x_y_z_init, o1, o2) {
-            const o1_center = o1.get_center();
-            const o2_center = o2.get_center();
-            const normal_vector = o2_center.minus(o1_center);
-            const normal = Vec.of(normal_vector[0], normal_vector[1], normal_vector[2]);
+        static update_object_fv_angle(o1_fv_x_y_z_init, o1, o1_center, o2, normal) {
 
             // the angle between collision normal and positive z axis
             const normal_theta = PhysicsObject.calculate_vector_angle(Vec.of(0, 0, 1), normal);

@@ -181,8 +181,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         let ball_spacing = 5;
         let x_initial = 0;
         let z_initial = -3;
-        let triangle_height = 3;
+        let triangle_height = 1;
         let i = 0;
+        this.num_pins = 0;
 
         for (let z = z_initial; z > z_initial - triangle_height; z--) {
             for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x++) {
@@ -193,7 +194,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 this.initial_pin_transforms[i] = pin_transform;
                 this.pin_physics_objects[i] =
                     new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius, this.default_time_constant,
-                        "pin " + i);
+                        "pin " + (i + 1));
                 this.num_pins++;
                 i++;
             }
@@ -262,7 +263,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.key_triggered_button("Focus camera on pin", ["]"], () => {
                 this.lock_camera_on_ball = false;
                 if (this.lock_camera_on_pin) {
-                    if (this.pin_camera_index == 8) {
+                    if (this.pin_camera_index >= this.num_pins) {
                         this.pin_camera_index = 0;
                     }
                     else {
@@ -507,12 +508,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         let distance = this.get_distance(o1_center, o2_center);
         const found_collision = distance <= o1.radius + o2.radius + this.collide_adjust;
         if (found_collision) {
-            console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]:");
-            console.log(o1.object_tag + " center: " + o1_center);
-            console.log(o2.object_tag + " center: " + o2_center);
-            console.log(o1.object_tag + " radius: " + o1.radius);
-            console.log(o2.object_tag + " radius: " + o2.radius);
-            console.log("distance: " + distance);
+            console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
+                            o1.object_tag + " center: " + o1_center  + "\n" +
+                            o2.object_tag + " center: " + o2_center + "\n" +
+                            o1.object_tag + " radius: " + o1.radius + "\n" +
+                            o2.object_tag + " radius: " + o2.radius + "\n" +
+                            "distance: " + distance
+            );
         }
         return found_collision;
     }
@@ -718,13 +720,12 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.draw_pins(graphics_state);
 
             if (!this.ball_launched) {
-                // if (!this.paused) {
-                //     this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
-                //     if (this.arrow_angle >= 2 * Math.PI) {
-                //         this.arrow_angle = 0;
-                //     }
-                // }
-                this.arrow_angle = this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE;
+                if (!this.paused) {
+                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
+                    if (this.arrow_angle >= 2 * Math.PI) {
+                        this.arrow_angle = 0;
+                    }
+                }
                 this.draw_arrow(graphics_state, this.arrow_angle);
             }
 
