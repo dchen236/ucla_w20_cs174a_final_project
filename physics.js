@@ -137,8 +137,16 @@ window.PhysicsObject = window.classes.PhysicsObject =
             if (!o1_fv_x_y_z_init.equals(Vec.of(0, 0, 0)) && !o2_fv_x_y_z_init.equals(Vec.of(0, 0, 0)) &&
                 PhysicsObject.is_right(Vec.of(0, 0, 0,), normal_perpendicular, o1_fv_x_y_z_init) ==
                 PhysicsObject.is_right(Vec.of(0, 0, 0,), normal_perpendicular, o2_fv_x_y_z_init)) {
+                const zx_collision_theta = PhysicsObject.calculate_vector_angle(normal, o1_fv_x_y_z_init);
+                const o1_fv_x_y_z_normal_theta = PhysicsObject.calculate_vector_angle(o1_fv_x_y_z_init, normal);
                 console.log("TYPE 2 collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]");
-                console.log("")
+                if (PhysicsObject.is_right(Vec.of(0, 0, 0), normal_perpendicular, o1_fv_x_y_z_init) &&
+                    o1_fv_x_y_z_normal_theta >= Math.PI / 2 && o1_fv_x_y_z_normal_theta <= Math.PI) {
+                    console.log("[" + o2.object_tag + "] is behind [" + o1.object_tag + "]");
+                }
+                else {
+                    console.log("[" + o1.object_tag + "] is behind [" + o2.object_tag + "]");
+                }
             }
             else {
                 console.log("TYPE 1 collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]");
