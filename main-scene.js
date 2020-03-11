@@ -147,7 +147,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
-        this.floor_damnumber_ballg = 0;
+        this.floor_damnumber_ballg = 0.0000275;
         this.ball_damnumber_ballg = this.floor_damnumber_ballg;
         this.number_ball_damnumber_ballg = this.floor_damnumber_ballg;
         this.ball_mass = 1;
@@ -216,7 +216,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         let ball_spacing = 3.25;
         let x_initial = 0;
         let z_initial = -5;
-        let triangle_height = 1;
+        let triangle_height = 5;
         let i = 0;
         this.num_number_balls = 0;
 
@@ -684,7 +684,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         return found_collision;
     }
 
-    handle_hole_collsions(){
+    handle_hole_collisions(){
         for( let i = 0; i < this.hole_objects.length; i ++){
             if (this.check_if_collide(this.hole_objects[i], this.cue_ball_physics_object)) {
                 this.score -= 10;
@@ -919,7 +919,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             if (!this.paused) {
                 this.handle_ball_collisions();
                 this.handle_wall_collisions();
-                //this.handle_hole_collsions();
+                this.handle_hole_collisions();
             }
 
             if (this.enable_collision_markers) {
