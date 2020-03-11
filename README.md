@@ -53,27 +53,29 @@ edward/danni insight
 
 ### Skybox
 
-We created a skybox in order to create the background of a real casino. In order to do this, we create a square_map which is a wrapper of cubic object and "stick" images inside the cubic to simnulate a skybox, our skybox only attach images to 4 sides (top and bottom are not mapped because we want to put our camera futher away from the scene), images were provided by Tajas Bhat and William Chern.
+We created a skybox in order to create the background of a real casino. In order to do this, we create a square_map which is a wrapper of cubic object and "stick" images inside the cubic to simnulate a skybox, our skybox only attach images to 4 sides (top and bottom are not mapped because we want to put our camera futher away from the scene), images were provided by Tejas Bhat and William Chern.
 
 ### Texture Mapping
 
-There were a lot of different textures that we had to map throughout this entire project in order to make the 10-ball pool simulation better.
-- Cue Ball:
-- Strike Balls:
-- Table Felt:
-- Table Wood Finish: 
+There were a lot of different textures that we had to map throughout this entire project in order to make the 10-ball pool simulation better. Some of the textures were flat, like the table felt and wood. However, others had to be optimized for spherical shapes, especially the cue ball and number balls. 
+- Cue Ball
+- Number Balls
+- Table Felt
+- Table Wood Finish
 
 ### Lighting
 
-In terms of lighting, we wanted to create several different tyeps of experiences for the user. 
+In terms of lighting, we wanted to create several different types of experiences for the user. While the original light setting is set to more of a family pool table, the 'party mode' makes the pool table seem like it is in a club with overhead lighting on the balls. In this way, the environment is dynamic and can be changed to the user's wishes. 
+
+We implemented the 'party mode' by dimming the texture objects and changing the location of the main light source. All the balls, utilizing the Phong Shader, are affected by this change.
 
 ## Group Member Responsibilities
 
 ### Tejas Bhat
+- 
 - Laid out graphical design for game by creating the pool table using various shapes.
 - Implemented texture mapping for the felt of the table and wood on the sides 
 - Created texture mapping for balls in tradition 10-ball pool formation 
-- Utilized texture mapping for balls
 - Implemented rudimentary skybox utilizing texture mapping a large cube (was later improved to a Square_Map)
 
 ### Danni Chen
