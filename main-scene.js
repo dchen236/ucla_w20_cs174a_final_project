@@ -101,6 +101,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         };
 
         this.collide_sound = new Audio("assets/collide_sound.mp3");
+        this.casino_music = new Audio("assets/casino_music.mp3");
+        this.music_playing = false;
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
         this.floor_width = 80;
         this.floor_height = 80;
@@ -125,7 +127,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
-        this.floor_damping = .00002;
+        this.floor_damping = .0000275;
         this.ball_damping = this.floor_damping;
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
@@ -158,6 +160,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.hole_transforms = []
         this.lock_camera_on_ball = false;
         this.lock_camera_on_pin = false;
+        this.lock_camera_behind_ball = false;
         this.pin_camera_index = 0;
         this.initial_camera_reset = false;
         this.arrow_angle = 0;
@@ -186,12 +189,12 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     initialize_triangle_pins() {
         let ball_spacing = 4;
         let x_initial = 0;
-        let z_initial = -3;
+        let z_initial = -5;
         let triangle_height = 5;
         let i = 0;
         this.num_pins = 0;
 
-        for (let z = z_initial; z > z_initial - triangle_height; z--) {
+        for (let z = z_initial; z > z_initial - triangle_height/1.5; z--) {
             for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x+=2) {
                 console.log("spawning pin at " + "[" + x + ", " + z + "]");
                 let pin_transform = Mat4.identity()
@@ -211,6 +214,11 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     make_control_panel()
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
+            if(!this.music_playing){
+                this.casino_music.play();
+                this.music_playing = true;
+            }
+
             if (!this.ball_launched && this.launch_left > 0) {
                 if (!this.free_play_mode) {
                     this.launch_left -= 1;
@@ -230,6 +238,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.key_triggered_button("Lock Camera On Main Ball", ["i"], () => {
                 this.lock_camera_on_ball = !this.lock_camera_on_ball;
                 this.lock_camera_on_pin = false;
+                this.lock_camera_behind_ball = false;
+            }
+        );
+        this.new_line();
+        this.key_triggered_button("Lock Camera Behind Main Ball", ["u"], () => {
+                this.lock_camera_behind_ball = !this.lock_camera_behind_ball;
+                this.lock_camera_on_ball = false;
+                this.lock_camera_on_pin = false;
             }
         );
         this.new_line();
@@ -243,7 +259,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             }
         );
         this.new_line();
-        this.key_triggered_button("Reset Ball", ["l"], () =>
+        this.key_triggered_button("Reset Game", ["l"], () =>
             this.reset = true
         );
         this.new_line();
@@ -269,6 +285,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.new_line();
         this.key_triggered_button("Focus camera on pin", ["]"], () => {
                 this.lock_camera_on_ball = false;
+                this.lock_camera_behind_ball = false;
                 if (this.lock_camera_on_pin) {
                     if (this.pin_camera_index >= this.num_pins) {
                         this.pin_camera_index = 0;
@@ -287,7 +304,18 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     update_camera_transform(graphics_state) {
         var desired;
         const blending_factor = 0.1;
-        if (this.lock_camera_on_ball) {
+        if(this.lock_camera_behind_ball){
+            this.initial_camera_reset = true;
+            desired =
+                Mat4.inverse(
+                    this.bowling_ball_transform
+                        .times(Mat4.translation(Vec.of(0, 5, 20)))
+                );
+            graphics_state.camera_transform =
+                desired.map((x, i) =>
+                    Vec.from(graphics_state.camera_transform[i]).mix(x, blending_factor));
+        }
+        else if (this.lock_camera_on_ball) {
             this.initial_camera_reset = true;
             desired =
                 Mat4.inverse(
@@ -472,7 +500,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     draw_pins(graphics_state) {
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
             if (!this.pin_fell_into_hole[i]) {
-                let image_filename = `assets/ball_${i+1}.jpg`;
+                let image_filename = this.determine_pin_texture(i);
                 let material =
                     this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
                 var transform;
@@ -491,6 +519,42 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         }
     }
+
+        determine_pin_texture(i) {
+            if(i === 0){
+                return `assets/ball_1.jpg`;
+            }
+            else if(i === 1){
+                return `assets/ball_5.jpg`;
+            }
+            else if(i === 2){
+                return `assets/ball_9.jpg`;
+            }
+            else if(i === 3){
+                return `assets/ball_4.jpg`;
+            }
+            else if(i === 4){
+                return `assets/ball_10.jpg`;
+            }
+            else if(i === 5){
+                return `assets/ball_3.jpg`;
+            }
+            else if(i === 6){
+                return `assets/ball_2.jpg`;
+            }
+            else if(i === 7){
+                return `assets/ball_6.jpg`;
+            }
+            else if(i === 8){
+                return `assets/ball_8.jpg`;
+            }
+            else if(i === 9){
+                return `assets/ball_7.jpg`;
+            }
+            else{
+                return 'none';
+            }
+        }
 
     draw_collision_results(graphics_state) {
 
