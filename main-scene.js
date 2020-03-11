@@ -121,7 +121,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
-        this.floor_damping = .00002;
+        this.floor_damping = .0000275;
         this.ball_damping = this.floor_damping;
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
@@ -151,6 +151,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.initial_pin_transforms = [];
         this.lock_camera_on_ball = false;
         this.lock_camera_on_pin = false;
+        this.lock_camera_behind_ball = false;
         this.pin_camera_index = 0;
         this.initial_camera_reset = false;
         this.arrow_angle = 0;
@@ -222,6 +223,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.key_triggered_button("Lock Camera On Main Ball", ["i"], () => {
                 this.lock_camera_on_ball = !this.lock_camera_on_ball;
                 this.lock_camera_on_pin = false;
+                this.lock_camera_behind_ball = false;
+            }
+        );
+        this.new_line();
+        this.key_triggered_button("Lock Camera Behind Main Ball", ["u"], () => {
+                this.lock_camera_behind_ball = !this.lock_camera_behind_ball;
+                this.lock_camera_on_ball = false;
+                this.lock_camera_on_pin = false;
             }
         );
         this.new_line();
@@ -261,6 +270,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.new_line();
         this.key_triggered_button("Focus camera on pin", ["]"], () => {
                 this.lock_camera_on_ball = false;
+                this.lock_camera_behind_ball = false;
                 if (this.lock_camera_on_pin) {
                     if (this.pin_camera_index >= this.num_pins) {
                         this.pin_camera_index = 0;
@@ -279,7 +289,18 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     update_camera_transform(graphics_state) {
         var desired;
         const blending_factor = 0.1;
-        if (this.lock_camera_on_ball) {
+        if(this.lock_camera_behind_ball){
+            this.initial_camera_reset = true;
+            desired =
+                Mat4.inverse(
+                    this.bowling_ball_transform
+                        .times(Mat4.translation(Vec.of(0, 5, 20)))
+                );
+            graphics_state.camera_transform =
+                desired.map((x, i) =>
+                    Vec.from(graphics_state.camera_transform[i]).mix(x, blending_factor));
+        }
+        else if (this.lock_camera_on_ball) {
             this.initial_camera_reset = true;
             desired =
                 Mat4.inverse(
