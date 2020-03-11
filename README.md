@@ -41,7 +41,11 @@ In terms of lighting, we wanted to create several different tyeps of experiences
 ## Group Member Responsibilities
 
 ### Tejas Bhat
-- tejas
+- Laid out graphical design for game by creating the pool table using various shapes.
+- Implemented texture mapping for the felt of the table and wood on the sides 
+- Created texture mapping for balls in tradition 10-ball pool formation 
+- Utilized texture mapping for balls
+- Implemented rudimentary skybox utilizing texture mapping a large cube (was later improved to a Square_Map)
 
 ### Danni Chen
 * Implemented collision detection feature 
@@ -49,12 +53,12 @@ In terms of lighting, we wanted to create several different tyeps of experiences
     * Tracking locations and motion of balls (cue ball and colored-balls)
     * Increase user's scores when colored ball fell into holes
     * Display text line when game is over (cue-ball fell into one of the holes)
-* Added casino-skybox to the game (images provided by Tajas Bhat and William Chern)
+* Added casino-skybox to the game (images provided by Tejas Bhat and William Chern)
 * Helped with the physics part by adding and tracking the center of objects for collision detection.
 
 ### Edward Lu
 - edward
 
 ### William Chern
-- william
+- Found textures for all the pool balls
 
