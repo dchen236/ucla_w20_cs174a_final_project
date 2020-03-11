@@ -126,7 +126,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
         this.pin_mass = 2;
-        this.bowling_ball_radius = 1;
+        this.bowling_ball_radius = 2;
         this.pin_radius = 2;
         this.num_pins = 0;
         this.collide_adjust = 0;
@@ -134,7 +134,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.arrow_speed = 2;
 
         // game state
-        this.bowling_ball_transform = Mat4.identity();
+        this.bowling_ball_transform = Mat4.identity().times(Mat4.scale(Vec.of(this.bowling_ball_radius, this.bowling_ball_radius, this.bowling_ball_radius)));
         this.bowling_ball_physics_object =
             new PhysicsObject(
                 this.ball_damping,
@@ -180,12 +180,12 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     initialize_triangle_pins() {
         let ball_spacing = 4;
         let x_initial = 0;
-        let z_initial = -3;
+        let z_initial = -5;
         let triangle_height = 5;
         let i = 0;
         this.num_pins = 0;
 
-        for (let z = z_initial; z > z_initial - triangle_height; z--) {
+        for (let z = z_initial; z > z_initial - triangle_height/1.5; z--) {
             for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x+=2) {
                 console.log("spawning pin at " + "[" + x + ", " + z + "]");
                 let pin_transform = Mat4.identity()
@@ -244,7 +244,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             }
         );
         this.new_line();
-        this.key_triggered_button("Reset Ball", ["l"], () =>
+        this.key_triggered_button("Reset Game", ["l"], () =>
             this.reset = true
         );
         this.new_line();
@@ -456,7 +456,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
     draw_pins(graphics_state) {
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
-            let image_filename = `assets/ball_${i+1}.jpg`;
+            let image_filename = this.determine_pin_texture(i);
+
             let material =
                 this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
             var transform;
@@ -471,6 +472,42 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 transform.times(this.initial_pin_transforms[i]),
                 material
             );
+        }
+    }
+
+    determine_pin_texture(i) {
+        if(i === 0){
+            return `assets/ball_1.jpg`;
+        }
+        else if(i === 1){
+            return `assets/ball_5.jpg`;
+        }
+        else if(i === 2){
+            return `assets/ball_9.jpg`;
+        }
+        else if(i === 3){
+            return `assets/ball_4.jpg`;
+        }
+        else if(i === 4){
+            return `assets/ball_10.jpg`;
+        }
+        else if(i === 5){
+            return `assets/ball_3.jpg`;
+        }
+        else if(i === 6){
+            return `assets/ball_2.jpg`;
+        }
+        else if(i === 7){
+            return `assets/ball_6.jpg`;
+        }
+        else if(i === 8){
+            return `assets/ball_8.jpg`;
+        }
+        else if(i === 9){
+            return `assets/ball_7.jpg`;
+        }
+        else{
+            return 'none';
         }
     }
 
