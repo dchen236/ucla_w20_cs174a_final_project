@@ -101,7 +101,14 @@ We implemented the 'party mode' by dimming the texture objects and changing the 
 	* Creating the PhysicsObject API
     * Implementing basic collision calculation, glancing collision calculation
     * Added collision logic for balls against walls of table (inserted phantom balls at points of collision, to turn the wall collision into sphere collisions and keep the collision code simpler)
+	* Implemented drawing of collision markers
 * Wrote physics section of readme
+* Implemented initial base framework in main-scene.js
+	* triangle ball spawning logic
+	* ball arrow launch logic
+	* slow motion logic
+	* pause logic
+	* shift of camera to cue ball and other balls
 
 ### William Chern
 - Found textures for all the pool balls
