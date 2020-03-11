@@ -19,9 +19,12 @@ edward/danni insight
 
 edward/danni insight
 
+- Detecting the collision: 
+ * Giving each object a center and radius, we detect two object collides with each other whenever the distance between the center of two objects is less than or equal to the sum of their radii
+
 ### Skybox
 
-We created a skybox in order to create the background of a real casino. In order to do this, we  
+We created a skybox in order to create the background of a real casino. In order to do this, we create a square_map which is a wrapper of cubic object and "stick" images inside the cubic to simnulate a skybox, our skybox only attach images to 4 sides (top and bottom are not mapped because we want to put our camera futher away from the scene), images were provided by Tajas Bhat and William Chern.
 
 ### Texture Mapping
 
