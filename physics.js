@@ -2,8 +2,9 @@
 window.PhysicsObject = window.classes.PhysicsObject =
     class PhysicsObject {
         constructor(damping_constant, mass, center_transform, radius, time_constant,
-                    object_tag) {
-            this.transform = Mat4.identity();
+                    object_tag, initial_transform) {
+            this.initial_transform = initial_transform;
+            this.transform = this.initial_transform;
             this.force_vector = Vec.of(0, 0, 0);
             this.damping_constant = damping_constant;
             this.center_transform = center_transform;
@@ -15,7 +16,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
         }
 
         reset() {
-            this.transform = Mat4.identity();
+            this.transform = this.initial_transform;
             this.center = this.center_transform.times(Vec.of(0, 0, 0, 1));
             this.force_vector = Vec.of(0, 0, 0);
         }

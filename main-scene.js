@@ -166,7 +166,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 Mat4.identity(),
                 this.bowling_ball_radius,
                 this.default_time_constant,
-                "launch ball");
+                "launch ball",
+                Mat4.identity()
+                    .times(Mat4.translation(Vec.of(0, 0, 10))));
         this.pin_physics_objects = [];
         this.hole_objects = [];
         this.base_pin_transform =
@@ -220,8 +222,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                     .times(this.base_pin_transform);
                 this.initial_pin_transforms[i] = pin_transform;
                 this.pin_physics_objects[i] =
-                    new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius, this.default_time_constant,
-                        "pin " + (i + 1));
+                    new PhysicsObject(
+                        this.pin_damping,
+                        this.pin_mass,
+                        pin_transform,
+                        this.pin_radius,
+                        this.default_time_constant,
+                        "pin " + (i + 1),
+                        Mat4.identity());
                 this.pin_fell_into_hole[i] = false;
                 this.num_pins++;
                 i++;
@@ -425,11 +433,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.hole_objects[i] = new PhysicsObject(this.pin_damping,
                                                     this.pin_mass,
                                                     left_hole_transformation, this.hole_radius, this.default_time_constant,
-                                                    "hole " + (i + 1));
+                                                    "hole " + (i + 1),
+                                                    Mat4.identity());
             this.hole_objects[i+1] = new PhysicsObject(this.pin_damping,
                                                         this.pin_mass,
                                                         right_hole_transformation, this.hole_radius, this.default_time_constant,
-                                                        "hole " + (i + 2));
+                                                        "hole " + (i + 2),
+                                                        Mat4.identity());
             this.hole_transforms[i] = left_hole_transformation;
             this.hole_transforms[i+1] = right_hole_transformation;
         }
@@ -754,7 +764,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(-radius, 0, 0))),
                     radius,
                     this.default_time_constant,
-                    "phantom ball (left wall)"
+                    "phantom ball (left wall)",
+                    Mat4.identity()
                 ),
                 true
             )
@@ -771,7 +782,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(radius, 0, 0))),
                     radius,
                     this.default_time_constant,
-                    "phantom ball (right wall)"
+                    "phantom ball (right wall)",
+                    Mat4.identity()
                 ),
                 true
             )
@@ -788,7 +800,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(0, 0, -radius))),
                     radius,
                     this.default_time_constant,
-                    "phantom ball (bottom wall)"
+                    "phantom ball (bottom wall)",
+                    Mat4.identity()
                 ),
                 true
             )
@@ -805,7 +818,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times(Mat4.translation(Vec.of(0, 0, radius))),
                     radius,
                     this.default_time_constant,
-                    "phantom ball (top wall)"
+                    "phantom ball (top wall)",
+                    Mat4.identity()
                 ),
                 true
             )
