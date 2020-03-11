@@ -58,6 +58,15 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 ambient: 1,
                 texture: context.get_instance( "assets/casino_left_right.jpg", false ) } ),
 
+            skybox_front_back_dark: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+                 ambient: 1,
+                 texture: context.get_instance( "assets/casino_front_back_dimmed.jpg", false )
+            } ),
+            skybox_left_right_dark: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
+                ambient: 1,
+                texture: context.get_instance( "assets/casino_left_right_dimmed.jpg", false )
+            } ),
+
             bowling_ball: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.8,
                 texture: context.get_instance("assets/BallCue.jpg", true)
@@ -166,6 +175,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.arrow_angle = 0;
         this.ball_launched = false;
         this.reset = false;
+        this.dark_mode = false;
 
         // testing state
         this.collision_results = new Array();
@@ -275,6 +285,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.slow_motion_toggle = true
         );
         this.new_line();
+        this.key_triggered_button("Toggle dark mode", ["y"], () =>
+            this.dark_mode = !this.dark_mode
+        );
+        this.new_line();
         this.key_triggered_button("Pause", ["p"], () =>
             this.paused = !this.paused
         );
@@ -372,7 +386,15 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                         .times( Mat4.rotation(  k > 2 ? t/10 : 0, Vec.of( 0, 1, 0 ) ) )
                         .times( Mat4.translation([ 0, 0,50]) );
                     // .times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));//marker
-                    this.shapes.skybox.draw(graphics_state, square_transform, this.materials[k]);
+                    if (!this.dark_mode) {
+                        this.shapes.skybox.draw(graphics_state, square_transform, this.materials[k]);
+                    } else {
+                        if ( k === 3 || k === 4) {
+                            this.shapes.skybox.draw(graphics_state, square_transform, this.materials.skybox_front_back_dark);
+                        } else {
+                            this.shapes.skybox.draw(graphics_state, square_transform, this.materials.skybox_left_right_dark);
+                        }
+                    }
                 }
 
             }
