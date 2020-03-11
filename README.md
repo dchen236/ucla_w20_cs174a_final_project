@@ -41,7 +41,13 @@ In terms of lighting, we wanted to create several different tyeps of experiences
 - tejas
 
 ### Danni Chen
-- danni
+* Implemented collision detection feature 
+* Implemented the scoring system
+    * Tracking locations and motion of balls (cue ball and colored-balls)
+    * Increase user's scores when colored ball fell into holes
+    * Display text line when game is over (cue-ball fell into one of the holes)
+* Added casino-skybox to the game (images provided by Tajas Bhat and William Chern)
+* Helped with the physics part by adding and tracking the center of objects for collision detection.
 
 ### Edward Lu
 - edward
