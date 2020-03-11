@@ -75,6 +75,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 ambient: 1,
                 texture: context.get_instance("assets/green_felt.jpg", true)
             }),
+            floor_dark: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 1,
+                texture: context.get_instance("assets/green_felt_dimmed.jpg", true)
+            }),
             arrow: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 1, 0.8), {
                 ambient: 1
             }),
@@ -102,6 +106,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             wall: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 1,
                 texture: context.get_instance("assets/wood_texture.jpg", true)
+            }),
+            wall_dark: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 1,
+                texture: context.get_instance("assets/wood_texture_dimmed.jpg", true)
             }),
             bounding_cube: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 1,
@@ -434,12 +442,21 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         //     this.bounding_cube_transform,
         //     this.materials.bounding_cube
         // );
-        this.draw_holes(graphics_state)
-        this.shapes.floor.draw(
-            graphics_state,
-            this.floor_transform,
-            this.materials.floor
-        );
+        this.draw_holes(graphics_state);
+        if (!this.dark_mode) {
+            this.shapes.floor.draw(
+                graphics_state,
+                this.floor_transform,
+                this.materials.floor
+            );
+        } else {
+            this.shapes.floor.draw(
+                graphics_state,
+                this.floor_transform,
+                this.materials.floor_dark
+            );
+        }
+
         this.wall_transform_north =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(0, -3, this.floor_height/2)))
@@ -457,11 +474,19 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 .times(Mat4.translation(Vec.of(-1 * this.floor_width/2, -3, 0)))
                 .times(Mat4.scale(Vec.of(1, 5, this.floor_height/2 + 1)));
 
-        this.shapes.wall.draw(
-            graphics_state,
-            this.wall_transform_north,
-            this.materials.wall
-        );
+        if (!this.dark_mode) {
+            this.shapes.wall.draw(
+                graphics_state,
+                this.wall_transform_north,
+                this.materials.wall
+            );
+        } else {
+            this.shapes.wall.draw(
+                graphics_state,
+                this.wall_transform_north,
+                this.materials.wall_dark
+            );
+        }
 
         this.shapes.wall.draw(
             graphics_state,
