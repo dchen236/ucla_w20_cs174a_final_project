@@ -1,5 +1,5 @@
-window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
-    class Assignment_Four_Scene extends Scene_Component
+window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
+    class Ten_Ball_Pool extends Scene_Component
     { constructor( context, control_box )     // The scene begins by requesting the camera, shapes, and materials it will need.
     { super(   context, control_box );    // First, include a secondary Scene that provides movement controls:
         this.context = context;
