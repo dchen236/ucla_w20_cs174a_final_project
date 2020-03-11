@@ -14,7 +14,7 @@ The goal of the game is to get in as many of the ten balls in as possible withou
 ### Physics Simulation
 
 
-This section of the readme will go over the physics implementation. The explanation for the physics implementation will be split into three main parts: Part 1 will give a brief overview of the PhysicsObject API we made to represent a simple physics object, Part 2 will go into the two representations of a PhysicsObject's force vector used, Part 3 will go into basic collision calculations ignoring glancing collisions, aPart 4 will go over glancing collision calculations, and Part 5 will go over general challenges in the Physics implementation.
+This section of the readme will go over the physics implementation. The explanation for the physics implementation will be split into five parts: Part 1 will give a brief overview of the PhysicsObject API we made to represent a simple physics object, Part 2 will go into the two representations of a PhysicsObject's force vector used, Part 3 will go into basic collision calculations ignoring glancing collisions, aPart 4 will go over glancing collision calculations, and Part 5 will go over general challenges in the Physics implementation.
 
 1) PhysicsObject API
 	We created a PhysicsObject API to encapsulate the complexity of representing a physics object. The PhysicsObject API is contained in physics.js. In this documentation, we will only briefly go over the constructor of the object; other calculations in the PhysicsObject API like glancing collisions are explained in later sections.
