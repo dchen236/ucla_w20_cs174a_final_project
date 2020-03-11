@@ -293,7 +293,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             this.slow_motion_toggle = true
         );
         this.new_line();
-        this.key_triggered_button("Toggle dark mode", ["y"], () =>
+        this.key_triggered_button("Toggle party mode", ["y"], () =>
             this.dark_mode = !this.dark_mode
         );
         this.new_line();
