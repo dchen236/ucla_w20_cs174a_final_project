@@ -30,7 +30,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             wall: new Cube(),
             bounding_cube: new Cube(),
             skybox: new Square_Map(50), //marker
-            stick: new Shape_From_File()
+            hole: new Subdivision_Sphere(5), // mimic the whole
         };
         this.submit_shapes( context, shapes );
         this.materials = {
@@ -45,18 +45,18 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             // } ),
             3: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_left_right.jpg", false )
+                texture: context.get_instance( "assets/casino_front_back.jpg", false )
             } ),
             4: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_left_right.jpg", false )
+                texture: context.get_instance( "assets/casino_front_back.jpg", false )
             } ),
             5: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_front_back.jpg", false ) } ),
+                texture: context.get_instance( "assets/casino_left_right.jpg", false ) } ),
             6: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_front_back.jpg", false ) } ),
+                texture: context.get_instance( "assets/casino_left_right.jpg", false ) } ),
 
             bowling_ball: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.8,
@@ -72,6 +72,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             pin: context.get_instance (Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.8,
                 texture: context.get_instance("assets/pin_texture.png", true)
+            }),
+            hole:context.get_instance (Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 0.8,
             }),
             billiards_ball: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.9,
@@ -94,16 +97,10 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             bounding_cube: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 1,
                 texture: context.get_instance("assets/casino.jpg", true)
-            }),
-            stick: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
-                ambient: 1,
             })
         };
 
         this.collide_sound = new Audio("assets/collide_sound.mp3");
-        this.casino_music = new Audio("assets/casino_music.mp3");
-        this.music_playing = false;
-        
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
         this.floor_width = 80;
         this.floor_height = 80;
@@ -128,20 +125,21 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
-        this.floor_damping = .0000275;
+        this.floor_damping = .00002;
         this.ball_damping = this.floor_damping;
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
         this.pin_mass = 2;
-        this.bowling_ball_radius = 2;
+        this.bowling_ball_radius = 1;
         this.pin_radius = 2;
+        this.hole_radius = 2.5;
         this.num_pins = 0;
         this.collide_adjust = 0;
         this.launch_left = 5;
         this.arrow_speed = 2;
-
+        this.pin_fell_into_hole = []
         // game state
-        this.bowling_ball_transform = Mat4.identity().times(Mat4.scale(Vec.of(this.bowling_ball_radius, this.bowling_ball_radius, this.bowling_ball_radius)));
+        this.bowling_ball_transform = Mat4.identity();
         this.bowling_ball_physics_object =
             new PhysicsObject(
                 this.ball_damping,
@@ -151,14 +149,15 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 this.default_time_constant,
                 "launch ball");
         this.pin_physics_objects = [];
+        this.hole_objects = [];
         this.base_pin_transform =
             Mat4.identity()
                 .times(Mat4.scale(Vec.of(this.pin_radius, this.pin_radius, this.pin_radius)))
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
         this.initial_pin_transforms = [];
+        this.hole_transforms = []
         this.lock_camera_on_ball = false;
         this.lock_camera_on_pin = false;
-        this.lock_camera_behind_ball = false;
         this.pin_camera_index = 0;
         this.initial_camera_reset = false;
         this.arrow_angle = 0;
@@ -187,12 +186,12 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     initialize_triangle_pins() {
         let ball_spacing = 4;
         let x_initial = 0;
-        let z_initial = -5;
+        let z_initial = -3;
         let triangle_height = 5;
         let i = 0;
         this.num_pins = 0;
 
-        for (let z = z_initial; z > z_initial - triangle_height/1.5; z--) {
+        for (let z = z_initial; z > z_initial - triangle_height; z--) {
             for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x+=2) {
                 console.log("spawning pin at " + "[" + x + ", " + z + "]");
                 let pin_transform = Mat4.identity()
@@ -202,6 +201,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 this.pin_physics_objects[i] =
                     new PhysicsObject(this.pin_damping, this.pin_mass, pin_transform, this.pin_radius, this.default_time_constant,
                         "pin " + (i + 1));
+                this.pin_fell_into_hole[i] = false;
                 this.num_pins++;
                 i++;
             }
@@ -211,11 +211,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     make_control_panel()
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
-            if(!this.music_playing){
-                this.casino_music.play();
-                this.music_playing = true;
-            }
-
             if (!this.ball_launched && this.launch_left > 0) {
                 if (!this.free_play_mode) {
                     this.launch_left -= 1;
@@ -235,14 +230,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.key_triggered_button("Lock Camera On Main Ball", ["i"], () => {
                 this.lock_camera_on_ball = !this.lock_camera_on_ball;
                 this.lock_camera_on_pin = false;
-                this.lock_camera_behind_ball = false;
-            }
-        );
-        this.new_line();
-        this.key_triggered_button("Lock Camera Behind Main Ball", ["u"], () => {
-                this.lock_camera_behind_ball = !this.lock_camera_behind_ball;
-                this.lock_camera_on_ball = false;
-                this.lock_camera_on_pin = false;
             }
         );
         this.new_line();
@@ -256,7 +243,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             }
         );
         this.new_line();
-        this.key_triggered_button("Reset Game", ["l"], () =>
+        this.key_triggered_button("Reset Ball", ["l"], () =>
             this.reset = true
         );
         this.new_line();
@@ -282,7 +269,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.new_line();
         this.key_triggered_button("Focus camera on pin", ["]"], () => {
                 this.lock_camera_on_ball = false;
-                this.lock_camera_behind_ball = false;
                 if (this.lock_camera_on_pin) {
                     if (this.pin_camera_index >= this.num_pins) {
                         this.pin_camera_index = 0;
@@ -301,18 +287,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     update_camera_transform(graphics_state) {
         var desired;
         const blending_factor = 0.1;
-        if(this.lock_camera_behind_ball){
-            this.initial_camera_reset = true;
-            desired =
-                Mat4.inverse(
-                    this.bowling_ball_transform
-                        .times(Mat4.translation(Vec.of(0, 5, 20)))
-                );
-            graphics_state.camera_transform =
-                desired.map((x, i) =>
-                    Vec.from(graphics_state.camera_transform[i]).mix(x, blending_factor));
-        }
-        else if (this.lock_camera_on_ball) {
+        if (this.lock_camera_on_ball) {
             this.initial_camera_reset = true;
             desired =
                 Mat4.inverse(
@@ -374,6 +349,33 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
             }
     }
+
+    draw_holes(graphics_state) {
+        for (let i = 0; i < 3; i++) {
+            let y_coordinate = this.floor_height / 2 - 1.4 - (this.floor_height / 2 - 1.5)* i ;
+            let left_hole_transformation = Mat4.identity().times(Mat4.translation([-this.floor_width / 2 + 2, 0, y_coordinate]))
+                                                        .times(Mat4.scale(Vec.of(this.hole_radius, this.hole_radius, this.hole_radius)));
+
+            let right_hole_transformation = Mat4.identity().times(Mat4.translation([this.floor_width / 2 - 2, 0, y_coordinate]))
+                                                            .times(Mat4.scale(Vec.of(this.hole_radius, this.hole_radius, this.hole_radius)));
+            this.shapes.hole.draw(graphics_state,
+                                left_hole_transformation,
+                                this.materials.hole);
+            this.shapes.hole.draw(graphics_state,
+                right_hole_transformation,
+                this.materials.hole)
+            this.hole_objects[i] = new PhysicsObject(this.pin_damping,
+                                                    this.pin_mass,
+                                                    left_hole_transformation, this.hole_radius, this.default_time_constant,
+                                                    "hole " + (i + 1));
+            this.hole_objects[i+1] = new PhysicsObject(this.pin_damping,
+                                                        this.pin_mass,
+                                                        right_hole_transformation, this.hole_radius, this.default_time_constant,
+                                                        "hole " + (i + 2));
+            this.hole_transforms[i] = left_hole_transformation;
+            this.hole_transforms[i+1] = right_hole_transformation;
+        }
+    }
     draw_static_scene(graphics_state) {
         // let scale_factor = 200;
         // this.bounding_cube_transform =  Mat4.identity().times(Mat4.scale(Vec.of(scale_factor,scale_factor,scale_factor)));
@@ -382,6 +384,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         //     this.bounding_cube_transform,
         //     this.materials.bounding_cube
         // );
+        this.draw_holes(graphics_state)
         this.shapes.floor.draw(
             graphics_state,
             this.floor_transform,
@@ -468,58 +471,24 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
     draw_pins(graphics_state) {
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
-            let image_filename = this.determine_pin_texture(i);
-
-            let material =
-                this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
-            var transform;
-            if (this.paused) {
-                transform = this.pin_physics_objects[i].transform;
+            if (!this.pin_fell_into_hole[i]) {
+                let image_filename = `assets/ball_${i+1}.jpg`;
+                let material =
+                    this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
+                var transform;
+                if (this.paused) {
+                    transform = this.pin_physics_objects[i].transform;
+                }
+                else {
+                    transform = this.pin_physics_objects[i].update_and_get_transform(graphics_state);
+                }
+                this.shapes.pin.draw(
+                    graphics_state,
+                    transform.times(this.initial_pin_transforms[i]),
+                    material
+                );
             }
-            else {
-                transform = this.pin_physics_objects[i].update_and_get_transform(graphics_state);
-            }
-            this.shapes.pin.draw(
-                graphics_state,
-                transform.times(this.initial_pin_transforms[i]),
-                material
-            );
-        }
-    }
 
-    determine_pin_texture(i) {
-        if(i === 0){
-            return `assets/ball_1.jpg`;
-        }
-        else if(i === 1){
-            return `assets/ball_5.jpg`;
-        }
-        else if(i === 2){
-            return `assets/ball_9.jpg`;
-        }
-        else if(i === 3){
-            return `assets/ball_4.jpg`;
-        }
-        else if(i === 4){
-            return `assets/ball_10.jpg`;
-        }
-        else if(i === 5){
-            return `assets/ball_3.jpg`;
-        }
-        else if(i === 6){
-            return `assets/ball_2.jpg`;
-        }
-        else if(i === 7){
-            return `assets/ball_6.jpg`;
-        }
-        else if(i === 8){
-            return `assets/ball_8.jpg`;
-        }
-        else if(i === 9){
-            return `assets/ball_7.jpg`;
-        }
-        else{
-            return 'none';
         }
     }
 
@@ -591,6 +560,31 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         return found_collision;
     }
 
+    handle_hole_collsions(){
+        for( let i = 0; i < this.hole_objects.length; i ++){
+            if (this.check_if_collide(this.hole_objects[i], this.bowling_ball_physics_object)) {
+                this.score -= 10;
+                this.game_over = true;
+            }
+            for(let j = 0; j < this.pin_physics_objects.length; j ++) {
+                if (!this.pin_fell_into_hole[j]) {
+                    if (this.check_if_collide(this.hole_objects[i], this.pin_physics_objects[j])) {
+                        console.log("ball fell into hole")
+                        this.score += 10
+                        this.pin_fell_into_hole[j] = true;
+                    }
+                }
+            }
+
+        }
+
+    }
+
+
+
+
+
+
     do_collision(o1, o2, wall_collision) {
         const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2);
         this.collision_results.push(collision_result);
@@ -604,14 +598,14 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         }
     }
 
+
+
     handle_ball_collisions() {
         // check if ball collide 0th pin
         let score_multiplier = 1;
         for (let i = 0; i < this.pin_physics_objects.length; i++) {
             if (this.check_if_collide(this.bowling_ball_physics_object, this.pin_physics_objects[i]) ) {
                 console.log("did ball to pin collide");
-                this.score += 1 * score_multiplier;
-                score_multiplier += 2;
                 this.do_collision(this.bowling_ball_physics_object, this.pin_physics_objects[i], false);
             }
         }
@@ -620,9 +614,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
                 if (!this.pin_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0)) ||
                     !this.pin_physics_objects[j].force_vector.equals(Vec.of(0, 0, 0))) {
                     if (this.check_if_collide(this.pin_physics_objects[i], this.pin_physics_objects[j])) {
-                        console.log("did pin to pin collide, index " + i + " to index " + j);
-                        this.score += 1 * score_multiplier;
-                        score_multiplier *= 2;
                         this.do_collision(this.pin_physics_objects[i], this.pin_physics_objects[j], false);
                     }
                 }
@@ -775,12 +766,13 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
-        if (this.launch_left == 0 && !this.game_over) {
-            this.game_over = true;
-            this.last_launch_time = t;
-        }
+        // if (this.launch_left == 0 && !this.game_over) {
+        //     this.game_over = true;
+        //     this.last_launch_time = t;
+        // }
 
-        if (this.launch_left > 0 || t < this.last_launch_time + 1) {
+        // if (this.launch_left > 0 || t < this.last_launch_time + 1) {
+        if (! this.game_over) {
             if (this.reset) {
                 this.reset_scene(graphics_state);
                 this.reset = false;
@@ -804,6 +796,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             if (!this.paused) {
                 this.handle_ball_collisions();
                 this.handle_wall_collisions();
+                this.handle_hole_collsions();
             }
 
             if (this.enable_collision_markers) {
