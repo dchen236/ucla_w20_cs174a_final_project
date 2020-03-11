@@ -149,7 +149,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
         this.pin_mass = 2;
-        this.bowling_ball_radius = 1;
+        this.bowling_ball_radius = 2;
         this.pin_radius = 2;
         this.hole_radius = 2.5;
         this.num_pins = 0;
@@ -159,6 +159,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         this.pin_fell_into_hole = []
         // game state
         this.bowling_ball_transform = Mat4.identity();
+        this.initial_bowling_ball_transform =
+            Mat4.identity()
+                .times(Mat4.scale(Vec.of(this.bowling_ball_radius, this.bowling_ball_radius, this.bowling_ball_radius)));
         this.bowling_ball_physics_object =
             new PhysicsObject(
                 this.ball_damping,
@@ -544,9 +547,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             transform = this.bowling_ball_physics_object.update_and_get_transform(graphics_state);
         }
         this.bowling_ball_transform =
-            Mat4.identity().times(
-                transform
-            );
+            transform.times(this.initial_bowling_ball_transform);
         this.shapes.bowling_ball.draw(
             graphics_state,
             this.bowling_ball_transform,
