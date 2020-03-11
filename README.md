@@ -79,9 +79,9 @@ We implemented the 'party mode' by dimming the texture objects and changing the 
 ### Tejas Bhat
 - Laid out graphical design for game by creating the pool table using various shapes
 - Found appropriate textures and mapped the felt of the table and wood finish on the sides 
-- Created texture mapping for balls in tradition 10-ball pool formation 
+- Created texture mapping for balls in traditional 10-ball pool formation 
 - Implemented rudimentary skybox utilizing texture mapping a large cube (was later improved to a Square_Map)
-- Added music to the game which complies with all browswer regulations and starts only when the user has started playing
+- Added music to the game which complies with all browser regulations and starts only when the user has started playing
 - Upscaled/upgraded various textures in order to increase smoothness on all parts of the game
 - Optimized game by finding best friction and shooting speed for ball to mimic realistic pool game 
 - Created slide deck, voiceovers, and video for in-class final presentation
@@ -95,6 +95,14 @@ We implemented the 'party mode' by dimming the texture objects and changing the 
 * Added casino-skybox to the game (images provided by Tejas Bhat and William Chern)
 * Helped with the physics part by adding and tracking the center of objects for collision detection.
 
+### William Chern
+* Found textures for all pool balls, implemented image textures onto number balls
+* Worked with Danni and Tejas to create casino textures and implement casino skybox
+* Created and implemented "party mode" (dark mode) visuals
+    * Dimmed textures
+    * Adjusted lighting
+* Recorded screen recordings and voiceovers for in-class final presentation video
+
 ### Edward Lu
 * Helped with collision detection feature (adding feature of detecting all ball to ball collisions, not just cue ball to ball)
 * Implemented physics simulation
@@ -103,6 +111,7 @@ We implemented the 'party mode' by dimming the texture objects and changing the 
     * Added collision logic for balls against walls of table (inserted phantom balls at points of collision, to turn the wall collision into sphere collisions and keep the collision code simpler)
 * Wrote physics section of readme
 
-### William Chern
-- Found textures for all the pool balls
+## References and Resources
+* Pool ball textures: [https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html](https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html)
+* Wynn casino panorama: [https://www.flickr.com/photos/mattslocum/4401059901](https://www.flickr.com/photos/mattslocum/4401059901)
 
