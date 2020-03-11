@@ -187,7 +187,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     initialize_triangle_pins() {
-        let ball_spacing = 4;
+        let ball_spacing = 3.5;
         let x_initial = 0;
         let z_initial = -5;
         let triangle_height = 5;
@@ -557,7 +557,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         }
 
     draw_collision_results(graphics_state) {
-
         for (let i = 0; i < this.collision_results.length; i++) {
             for (let j = 0; j < 2; j++) {
                 const o_info = this.collision_results[i][j];
@@ -643,11 +642,6 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         }
 
     }
-
-
-
-
-
 
     do_collision(o1, o2, wall_collision) {
         const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2);
