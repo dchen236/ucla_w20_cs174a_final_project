@@ -56,8 +56,6 @@ This section of the readme will go over the physics implementation. The explanat
 
 ### Collision Detection
 
-edward/danni insight
-
 - Detecting the collision: 
  * Giving each object a center and radius, we detect two object collides with each other whenever the distance between the center of two objects is less than or equal to the sum of their radii
 
