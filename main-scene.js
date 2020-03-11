@@ -30,6 +30,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             wall: new Cube(),
             bounding_cube: new Cube(),
             skybox: new Square_Map(50), //marker
+            stick: new Shape_From_File()
         };
         this.submit_shapes( context, shapes );
         this.materials = {
@@ -93,10 +94,15 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
             bounding_cube: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 1,
                 texture: context.get_instance("assets/casino.jpg", true)
+            }),
+            stick: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
+                ambient: 1,
             })
         };
 
         this.collide_sound = new Audio("assets/collide_sound.mp3");
+        this.casino_music = new Audio("assets/casino_music.mp3");
+        this.casino_music.play();
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
         this.floor_width = 80;
         this.floor_height = 80;
