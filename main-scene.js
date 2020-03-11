@@ -9,8 +9,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // graphics parameters
         this.forward_camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-2,0 ), Vec.of( 0,1,0 ) )
             .times(Mat4.translation(Vec.of(0, -3, -3)));
-        this.top_camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-60,0 ), Vec.of( 0,1,0 ) )
-            .times(Mat4.translation(Vec.of(0, -130, 0)));
+        this.top_camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-80,0 ), Vec.of( 0,1,0 ) )
+            .times(Mat4.translation(Vec.of(0, -110, -5)));
         this.static_camera_positions = [this.forward_camera_transform, this.top_camera_transform];
         this.current_static_camera_position = 1;
         context.globals.graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
@@ -193,7 +193,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // testing state
         this.collision_results = new Array();
         this.max_collision_results_history_size = 10;
-        this.enable_collision_markers = true;
+        this.enable_collision_markers = false;
         this.collision_guide_colors = [
             [Color.of(1, 0, 0, 1), Color.of(0, 1, 0, 1), Color.of(0, 0, 1, 1)], // normal, collision, reflection colors for o1
             [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
