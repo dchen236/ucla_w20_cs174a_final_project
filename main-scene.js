@@ -102,7 +102,8 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         this.collide_sound = new Audio("assets/collide_sound.mp3");
         this.casino_music = new Audio("assets/casino_music.mp3");
-        this.casino_music.play();
+        this.music_playing = false;
+        
         this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
         this.floor_width = 80;
         this.floor_height = 80;
@@ -210,6 +211,11 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     make_control_panel()
     {
         this.key_triggered_button("Launch Ball", ["k"], () => {
+            if(!this.music_playing){
+                this.casino_music.play();
+                this.music_playing = true;
+            }
+
             if (!this.ball_launched && this.launch_left > 0) {
                 if (!this.free_play_mode) {
                     this.launch_left -= 1;
