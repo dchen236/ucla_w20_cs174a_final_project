@@ -121,7 +121,7 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
-        this.floor_damping = 0;
+        this.floor_damping = .00002;
         this.ball_damping = this.floor_damping;
         this.pin_damping = this.floor_damping;
         this.ball_mass = 1;
@@ -167,10 +167,9 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
         ];
         this.free_play_mode = true;
         this.slow_motion_toggle = true;
-        this.slow_motion = false;
-        this.INITIAL_PROBLEM_BALL_LAUNCH_ANGLE = 3.1800250415135047; // with collide_adjust = 0.21
+        this.slow_motion = true;
         this.auto_pause_on_collision_toggle = true;
-        this.auto_pause_on_collision = false;
+        this.auto_pause_on_collision = true;
 
         // initializations
         this.initialize_triangle_pins();
@@ -178,15 +177,15 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
     }
 
     initialize_triangle_pins() {
-        let ball_spacing = 5;
+        let ball_spacing = 4;
         let x_initial = 0;
         let z_initial = -3;
-        let triangle_height = 1;
+        let triangle_height = 5;
         let i = 0;
         this.num_pins = 0;
 
         for (let z = z_initial; z > z_initial - triangle_height; z--) {
-            for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x++) {
+            for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x+=2) {
                 console.log("spawning pin at " + "[" + x + ", " + z + "]");
                 let pin_transform = Mat4.identity()
                     .times(Mat4.translation(Vec.of(x * ball_spacing, 0, z * ball_spacing)))
@@ -458,37 +457,40 @@ window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
 
         for (let i = 0; i < this.collision_results.length; i++) {
             for (let j = 0; j < 2; j++) {
-                this.shapes.collision_guide.draw(
-                    graphics_state,
-                    Mat4.identity()
-                        .times(this.collision_results[i][j][0])
-                        .times(this.collision_results[i][j][1])
-                        .times(this.initial_collision_guide_transform),
-                    this.materials.collision_guide.override({
-                        color: this.collision_guide_colors[j][0]
-                    })
-                );
-                this.shapes.collision_guide.draw(
-                    graphics_state,
-                    Mat4.identity()
-                        .times(this.collision_results[i][j][0])
-                        .times(this.collision_results[i][j][2])
-                        .times(this.initial_collision_guide_transform),
-                    this.materials.collision_guide.override({
-                        color: this.collision_guide_colors[j][1]
-                    })
-                );
-                this.shapes.collision_guide.draw(
-                    graphics_state,
-                    Mat4.identity()
-                        .times(this.collision_results[i][j][0])
-                        .times(this.collision_results[i][j][3])
-                        .times(this.initial_collision_guide_transform)
-                        .times(Mat4.translation(Vec.of(0, 0.5, 0))),
-                    this.materials.collision_guide.override({
-                        color: this.collision_guide_colors[j][2]
-                    })
-                );
+                const o_info = this.collision_results[i][j];
+                if (o_info != undefined) {
+                    this.shapes.collision_guide.draw(
+                        graphics_state,
+                        Mat4.identity()
+                            .times(o_info[0])
+                            .times(o_info[1])
+                            .times(this.initial_collision_guide_transform),
+                        this.materials.collision_guide.override({
+                            color: this.collision_guide_colors[j][0]
+                        })
+                    );
+                    this.shapes.collision_guide.draw(
+                        graphics_state,
+                        Mat4.identity()
+                            .times(o_info[0])
+                            .times(o_info[2])
+                            .times(this.initial_collision_guide_transform),
+                        this.materials.collision_guide.override({
+                            color: this.collision_guide_colors[j][1]
+                        })
+                    );
+                    this.shapes.collision_guide.draw(
+                        graphics_state,
+                        Mat4.identity()
+                            .times(o_info[0])
+                            .times(o_info[3])
+                            .times(this.initial_collision_guide_transform)
+                            .times(Mat4.translation(Vec.of(0, 0.5, 0))),
+                        this.materials.collision_guide.override({
+                            color: this.collision_guide_colors[j][2]
+                        })
+                    );
+                }
             }
         }
 

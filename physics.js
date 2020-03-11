@@ -132,6 +132,9 @@ window.PhysicsObject = window.classes.PhysicsObject =
             const normal = Vec.of(normal_vector[0], normal_vector[1], normal_vector[2]);
             const normal_perpendicular = Vec.of(-normal[2], normal[1], normal[0]);
 
+            var o1_info = undefined;
+            var o2_info = undefined;
+
             // check whether collision is type 1 (init fv's on opposite side of collision normal)
             // or type 2 (init fv's on same side of collision normal)
             if (!o1_fv_x_y_z_init.equals(Vec.of(0, 0, 0)) && !o2_fv_x_y_z_init.equals(Vec.of(0, 0, 0)) &&
@@ -143,19 +146,21 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 if (PhysicsObject.is_right(Vec.of(0, 0, 0), normal_perpendicular, o1_fv_x_y_z_init) &&
                     o1_fv_x_y_z_normal_theta >= Math.PI / 2 && o1_fv_x_y_z_normal_theta <= Math.PI) {
                     console.log("[" + o2.object_tag + "] is behind [" + o1.object_tag + "]");
+                    // adjust angle of final forces on objects based on whether the collision was a glancing collision
+                    o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o2_center, o1, normal.times(-1));
                 }
                 else {
                     console.log("[" + o1.object_tag + "] is behind [" + o2.object_tag + "]");
+                    // adjust angle of final forces on objects based on whether the collision was a glancing collision
+                    o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o1_center, o2, normal);
                 }
             }
             else {
                 console.log("TYPE 1 collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]");
+                // adjust angle of final forces on objects based on whether the collision was a glancing collision
+                o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o1_center, o2, normal);
+                o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o2_center, o1, normal.times(-1));
             }
-
-
-            // adjust angle of final forces on objects based on whether the collision was a glancing collision
-            const o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o1_center, o2, normal);
-            const o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o2_center, o1, normal.times(-1));
 
             // adjust center of o1 to avoid subsequent incorrect collision calculations
             const distance = Math.sqrt(normal_vector[0]**2 + normal_vector[1]**2 + normal_vector[2]**2);
