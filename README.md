@@ -80,14 +80,14 @@ We implemented the 'party mode' by dimming the texture objects and changing the 
 ## Group Member Responsibilities
 
 ### Tejas Bhat
-- Laid out graphical design for game by creating the pool table using various shapes
+- Laid out graphical design for game by creating the pool table using various scaled shapes
 - Found appropriate textures and mapped the felt of the table and wood finish on the sides 
 - Created texture mapping for balls in traditional 10-ball pool formation 
-- Implemented rudimentary skybox utilizing texture mapping a large cube (was later improved to a Square_Map)
+- Implemented rudimentary skybox by texture mapping a large bounding cube (was later improved to a Square_Map)
 - Added music to the game which complies with all browser regulations and starts only when the user has started playing
 - Upscaled/upgraded various textures in order to increase smoothness on all parts of the game
-- Optimized game by finding best friction and shooting speed for ball to mimic realistic pool game 
-- Created slide deck, voiceovers, and video for in-class final presentation
+- Optimized game by tuning factors such as friction and shooting speed for ball to mimic realistic pool game 
+- Created and edited slide deck, voiceovers, and video for in-class final presentation
 
 ### Danni Chen
 * Implemented collision detection feature 
