@@ -189,6 +189,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             Mat4.identity()
                 .times(Mat4.scale(Vec.of(this.number_ball_radius, this.number_ball_radius, this.number_ball_radius)))
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
+        this.base_stick_transform =
+            Mat4.identity()
+                .times(Mat4.rotation(3 * Math.PI / 2, Vec.of(0, 1, 0)));
         this.initial_number_ball_transforms = [];
         this.hole_transforms = [];
         this.lock_camera_on_ball = false;
@@ -214,7 +217,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.slow_motion = true;
         this.auto_pause_on_collision_toggle = true;
         this.auto_pause_on_collision = true;
-        this.found_hole_collision = false;
 
         // initializations
         this.initialize_triangle_number_balls();
@@ -401,7 +403,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 
     reset_scene(graphics_state) {
-        this.found_hole_collision = false;
         this.slow_motion_toggle = true;
         this.slow_motion = true;
         this.collision_results = [];
@@ -556,11 +557,10 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.shapes.stick.draw(
             graphics_state,
             transform
-
-                .times(Mat4.rotation(arrow_angle  , Vec.of(0, 1, 0)))
+                .times(this.base_stick_transform)
+                .times(Mat4.rotation(arrow_angle, Vec.of(0, 1, 0)))
                 .times(Mat4.scale(Vec.of(6, 10, 30)))
-                .times(Mat4.translation(Vec.of(-1.4, 0, 0)))
-                ,
+                .times(Mat4.translation(Vec.of(-1.4, 0, 0))),
             stick_material
         );
     }
@@ -808,15 +808,13 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         for (let i = 0; i < this.hole_transforms.length; i++) {
             if (this.check_if_collide(this.cue_ball_physics_object, this.hole_physics_objects[i], true)) {
                 this.cue_ball_physics_object.enable_gravity();
-                if (!this.found_hole_collision) {
-                    this.found_hole_collision = true;
-                    this.slow_motion_toggle = true;
-                    // this.cue_ball_physics_object.force_vector = Vec.of(
-                    //     this.cue_ball_physics_object.force_vector[0],
-                    //     this.cue_ball_physics_object.force_vector[1],
-                    //     this.cue_ball_physics_object.force_vector[2] * .5
-                    // )
-                }
+                this.slow_motion_toggle = true;
+                this.slow_motion = false;
+                // this.cue_ball_physics_object.force_vector = Vec.of(
+                //     this.cue_ball_physics_object.force_vector[0],
+                //     this.cue_ball_physics_object.force_vector[1],
+                //     this.cue_ball_physics_object.force_vector[2] * .5
+                // )
             }
         }
     }
