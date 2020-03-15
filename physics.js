@@ -114,7 +114,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             return Vec.of(zx_offset_angle, 0, magnitude);
         }
 
-        static calculate_elastic_collision(o1, o2) {
+        static calculate_elastic_collision(o1, o2, add_center_adjust) {
             // calculate magnitude of final forces on objects
             const o1_fv_init = o1.force_vector;
             const o2_fv_init = o2.force_vector;
@@ -163,15 +163,17 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o2_center, o1, normal.times(-1));
             }
 
-            // adjust center of o1 to avoid subsequent incorrect collision calculations
-            const distance = Math.sqrt(normal_vector[0]**2 + normal_vector[1]**2 + normal_vector[2]**2);
-            const overlap = o1.radius + o2.radius - distance;
-            const offset_vector = PhysicsObject.calculate_x_y_z(Vec.of(o1.force_vector[0], 0, overlap));
-            console.log("overlap between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + overlap);
-            console.log("adjusting center of [" + o1.object_tag + "] by offset vector " + offset_vector);
-            o1.transform[0][3] += offset_vector[0];
-            o1.transform[1][3] += offset_vector[1];
-            o1.transform[2][3] += offset_vector[2];
+            if (add_center_adjust) {
+                // adjust center of o1 to avoid subsequent incorrect collision calculations
+                const distance = Math.sqrt(normal_vector[0] ** 2 + normal_vector[1] ** 2 + normal_vector[2] ** 2);
+                const overlap = o1.radius + o2.radius - distance;
+                const offset_vector = PhysicsObject.calculate_x_y_z(Vec.of(o1.force_vector[0], 0, overlap));
+                console.log("overlap between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + overlap);
+                console.log("adjusting center of [" + o1.object_tag + "] by offset vector " + offset_vector);
+                o1.transform[0][3] += offset_vector[0];
+                o1.transform[1][3] += offset_vector[1];
+                o1.transform[2][3] += offset_vector[2];
+            }
 
             console.log("final [" + o1.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o1.force_vector));
             console.log("final [" + o2.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o2.force_vector));

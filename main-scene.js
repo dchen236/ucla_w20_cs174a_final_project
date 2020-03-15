@@ -7,8 +7,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) );
 
         // graphics parameters
-        this.forward_camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-2,0 ), Vec.of( 0,1,0 ) )
-            .times(Mat4.translation(Vec.of(0, -3, -3)));
+        this.forward_camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-3,0 ), Vec.of( 0,1,0 ) )
+            .times(Mat4.translation(Vec.of(0, -40, -70)));
         this.top_camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-80,0 ), Vec.of( 0,1,0 ) )
             .times(Mat4.translation(Vec.of(0, -110, -2)));
         this.static_camera_positions = [this.forward_camera_transform, this.top_camera_transform];
@@ -147,9 +147,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // game parameters
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
-        this.floor_damnumber_ballg = 0.0000275;
-        this.ball_damnumber_ballg = this.floor_damnumber_ballg;
-        this.number_ball_damnumber_ballg = this.floor_damnumber_ballg;
+        this.floor_damping = 0.0000275;
+        this.ball_damnumber_ballg = this.floor_damping;
+        this.number_ball_damnumber_ballg = this.floor_damping;
         this.ball_mass = 1;
         this.number_ball_mass = 2;
         this.cue_ball_radius = 2;
@@ -216,11 +216,11 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         let ball_spacing = 3.25;
         let x_initial = 0;
         let z_initial = -5;
-        let triangle_height = 5;
+        let triangle_height = 1;
         let i = 0;
         this.num_number_balls = 0;
 
-        for (let z = z_initial; z > z_initial - triangle_height/1.5; z--) {
+        for (let z = z_initial; z > z_initial - triangle_height; z--) {
             for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x+=2) {
                 console.log("spawning number_ball at " + "[" + x + ", " + z + "]");
                 let number_ball_transform = Mat4.identity()
@@ -397,12 +397,14 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // console.log("ball: " + this.cue_ball_physics_object.center);
 
     }
-    draw_skybox(graphics_state,k,t){
+    draw_skybox(graphics_state,k,t,disable_front_wall){
         for( var i = 0; i < 3; i++ )
             for( var j = 0; j < 2; j++ )
             {
                 k += 1;
                 if ( k!= 1 && k != 2) {
+                    if (disable_front_wall && k == 5)
+                        continue;
                     let square_transform = Mat4.rotation( i == 0 ? Math.PI/2 : 0, Vec.of(1, 0, 0) )
                         .times( Mat4.rotation( Math.PI * j - ( i == 1 ? Math.PI/2 : 0 ), Vec.of( 0, 1, 0 ) ) )
                         .times( Mat4.rotation(  k > 2 ? t/10 : 0, Vec.of( 0, 1, 0 ) ) )
@@ -422,34 +424,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             }
     }
 
-    draw_holes(graphics_state) {
-        for (let i = 0; i < 3; i++) {
-            let y_coordinate = this.floor_height / 2 - 1.4 - (this.floor_height / 2 - 1.5)* i ;
-            let left_hole_transformation = Mat4.identity().times(Mat4.translation([-this.floor_width / 2 + 2, 0, y_coordinate]))
-                                                        .times(Mat4.scale(Vec.of(this.hole_radius, this.hole_radius, this.hole_radius)));
 
-            let right_hole_transformation = Mat4.identity().times(Mat4.translation([this.floor_width / 2 - 2, 0, y_coordinate]))
-                                                            .times(Mat4.scale(Vec.of(this.hole_radius, this.hole_radius, this.hole_radius)));
-            this.shapes.hole.draw(graphics_state,
-                                left_hole_transformation,
-                                this.materials.hole);
-            this.shapes.hole.draw(graphics_state,
-                right_hole_transformation,
-                this.materials.hole)
-            this.hole_objects[i] = new PhysicsObject(this.number_ball_damnumber_ballg,
-                                                    this.number_ball_mass,
-                                                    left_hole_transformation, this.hole_radius, this.default_time_constant,
-                                                    "hole " + (i + 1),
-                                                    Mat4.identity());
-            this.hole_objects[i+1] = new PhysicsObject(this.number_ball_damnumber_ballg,
-                                                        this.number_ball_mass,
-                                                        right_hole_transformation, this.hole_radius, this.default_time_constant,
-                                                        "hole " + (i + 2),
-                                                        Mat4.identity());
-            this.hole_transforms[i] = left_hole_transformation;
-            this.hole_transforms[i+1] = right_hole_transformation;
-        }
-    }
     draw_static_scene(graphics_state) {
         // let scale_factor = 200;
         // this.bounding_cube_transform =  Mat4.identity().times(Mat4.scale(Vec.of(scale_factor,scale_factor,scale_factor)));
@@ -458,7 +433,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         //     this.bounding_cube_transform,
         //     this.materials.bounding_cube
         // );
-        this.draw_holes(graphics_state);
         if (!this.dark_mode) {
             this.shapes.floor.draw(
                 graphics_state,
@@ -521,7 +495,10 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             this.wall_transform_east,
             this.materials.wall
         );
-        this.draw_skybox(graphics_state,0, 0);
+        var disable_front_wall = false;
+        if (this.current_static_camera_position == 0)
+            disable_front_wall = true;
+        this.draw_skybox(graphics_state,0, 0, disable_front_wall);
     }
 
     draw_arrow(graphics_state, arrow_angle) {
@@ -684,28 +661,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         return found_collision;
     }
 
-    handle_hole_collisions(){
-        for( let i = 0; i < this.hole_objects.length; i ++){
-            if (this.check_if_collide(this.hole_objects[i], this.cue_ball_physics_object)) {
-                this.score -= 10;
-                this.game_over = true;
-            }
-            for(let j = 0; j < this.number_ball_physics_objects.length; j ++) {
-                if (!this.number_ball_fell_into_hole[j]) {
-                    if (this.check_if_collide(this.hole_objects[i], this.number_ball_physics_objects[j])) {
-                        console.log("ball fell into hole")
-                        this.score += 10
-                        this.number_ball_fell_into_hole[j] = true;
-                    }
-                }
-            }
-
-        }
-
-    }
-
     do_collision(o1, o2, wall_collision) {
-        const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2);
+        const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2, !wall_collision);
         this.collision_results.push(collision_result);
         while (this.collision_results.length > this.max_collision_results_history_size) {
             this.collision_results.shift();
@@ -761,7 +718,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             this.do_collision(
                 o,
                 new PhysicsObject(
-                    this.floor_damnumber_ballg,
+                    this.floor_damping,
                     999,
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
@@ -779,7 +736,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             this.do_collision(
                 o,
                 new PhysicsObject(
-                    this.floor_damnumber_ballg,
+                    this.floor_damping,
                     999,
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
@@ -797,7 +754,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             this.do_collision(
                 o,
                 new PhysicsObject(
-                    this.floor_damnumber_ballg,
+                    this.floor_damping,
                     999,
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
@@ -815,7 +772,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             this.do_collision(
                 o,
                 new PhysicsObject(
-                    this.floor_damnumber_ballg,
+                    this.floor_damping,
                     999,
                     Mat4.identity()
                         .times(Mat4.translation(Vec.of(center[0], center[1], center[2])))
@@ -849,10 +806,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         if (center[2] - radius <= -this.floor_height/2) {
             o.transform[2][3] = - this.floor_height / 2 + radius - o.center[2];
         }
-    }
-
-    sphere_to_sphere_adjust_center(o1, o2) {
-
     }
 
     toggle_slow_motion() {
@@ -919,7 +872,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             if (!this.paused) {
                 this.handle_ball_collisions();
                 this.handle_wall_collisions();
-                this.handle_hole_collisions();
             }
 
             if (this.enable_collision_markers) {
