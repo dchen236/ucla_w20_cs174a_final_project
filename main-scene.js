@@ -228,7 +228,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         let ball_spacing = 3.25;
         let x_initial = 0;
         let z_initial = -5;
-        let triangle_height = 0;
+        let triangle_height = 4;
         let i = 0;
         this.num_number_balls = 0;
 
@@ -815,6 +815,23 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 //     this.cue_ball_physics_object.force_vector[1],
                 //     this.cue_ball_physics_object.force_vector[2] * .5
                 // )
+            }
+        }
+        for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
+            if (!this.number_ball_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0))) {
+                for (let j = 0; j < this.hole_transforms.length; j++) {
+                    if (this.check_if_collide(this.number_ball_physics_objects[i], this.hole_physics_objects[j],
+                        true)) {
+                        this.number_ball_physics_objects[i].enable_gravity();
+                        this.slow_motion_toggle = true;
+                        this.slow_motion = false;
+                        // this.number_ball_physics_objects[i].force_vector = Vec.of(
+                        //     this.number_ball_physics_objects[i].force_vector[0],
+                        //     this.number_ball_physics_objects[i].force_vector[1],
+                        //     this.number_ball_physics_objects[i].force_vector[2] * .5
+                        // )
+                    }
+                }
             }
         }
     }
