@@ -27,6 +27,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 [0, 1, 3], [0, 1, 4], [0, 2, 4],
                 [0, 1, 5], [0, 0, 7]
             )),
+            stick: new Shape_From_File("assets/billiards_cue_stick.obj"),
             number_ball: new Subdivision_Sphere(5),
             score_text: new Text_Line(100),
             collision_guide: new Cube(),
@@ -38,6 +39,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         };
         this.submit_shapes( context, shapes );
         this.materials = {
+            phong: context.get_instance( Phong_Shader ).material( Color.of( 222/ 255,184 / 255, 135 / 255,1 ), {ambient: 0.5, diffusivity: 1, specularity : 0,}),
+            phong_opaque: context.get_instance( Phong_Shader ).material( Color.of( 222/ 255,184 / 255, 135 / 255,0 ), {ambient: 0.5, diffusivity: 1, specularity : 0,}),
             // testing skybox
             // 1: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
             //     ambient: 1,
@@ -49,18 +52,18 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             // } ),
             3: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_front_back.jpg", false )
+                texture: context.get_instance( "assets/wall_back_ground_256x256.jpg", false )
             } ),
             4: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_front_back.jpg", false )
+                texture: context.get_instance( "assets/wall_back_ground_256x256.jpg", false )
             } ),
             5: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_left_right.jpg", false ) } ),
+                texture: context.get_instance( "assets/wall_back_ground_256x256.jpg", false ) } ),
             6: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
-                texture: context.get_instance( "assets/casino_left_right.jpg", false ) } ),
+                texture: context.get_instance( "assets/wall_back_ground_256x256.jpg", false ) } ),
 
             skybox_front_back_dark: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                  ambient: 1,
@@ -83,7 +86,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 ambient: 1,
                 texture: context.get_instance("assets/green_felt_dimmed.jpg", true)
             }),
-            arrow: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 1, 0.8), {
+            arrow: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 0.8), {
                 ambient: 1
             }),
             number_ball: context.get_instance (Phong_Shader ).material(Color.of(0, 0, 0, 1), {
@@ -146,7 +149,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 .times(Mat4.translation(Vec.of(0, 3, this.collision_guide_length / 2)))
                 .times(Mat4.scale(Vec.of(0.1, 0.1, this.collision_guide_length / 2)));
         this.score = 0;
-        this.last_launch_time = 60 * 10;
+        this.last_launch_time = 0;
         this.game_over = false;
 
         // game parameters
@@ -165,6 +168,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.arrow_speed = 2;
         this.number_ball_fell_into_hole = [];
         // game state
+        this.user_just_launched_ball = false;
         this.cue_ball_transform = Mat4.identity();
         this.initial_cue_ball_transform =
             Mat4.identity()
@@ -269,6 +273,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 );
                 this.collide_sound.play();
                 console.log("---");
+                this.user_just_launched_ball = true
 
             }
         });
@@ -346,6 +351,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         );
         this.new_line();
     }
+
 
     update_camera_transform(graphics_state) {
         var desired;
@@ -439,13 +445,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
 
     draw_static_scene(graphics_state) {
-        // let scale_factor = 200;
-        // this.bounding_cube_transform =  Mat4.identity().times(Mat4.scale(Vec.of(scale_factor,scale_factor,scale_factor)));
-        // this.shapes.bounding_cube.draw(
-        //     graphics_state,
-        //     this.bounding_cube_transform,
-        //     this.materials.bounding_cube
-        // );
 
         this.draw_holes(graphics_state);
 
@@ -463,6 +462,19 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     this.materials.floor_dark
                 );
             }
+        if (!this.dark_mode) {
+            this.shapes.floor.draw(
+                graphics_state,
+                this.floor_transform,
+                this.materials.floor
+            );
+
+        } else {
+            this.shapes.floor.draw(
+                graphics_state,
+                this.floor_transform,
+                this.materials.floor_dark
+            );
         }
 
 
@@ -520,7 +532,18 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.draw_skybox(graphics_state,0, 0, disable_front_wall);
     }
 
-    draw_arrow(graphics_state, arrow_angle) {
+    draw_stick(graphics_state, arrow_angle) {
+        let stick_material = this.materials.phong;
+        const t = graphics_state.animation_time / 1000
+        if (this.user_just_launched_ball) {
+            this.last_launch_time = t;
+            this.user_just_launched_ball = false;
+        }
+
+        if ( t < this.last_launch_time + 0.5) {
+            stick_material = this.materials.phong_opaque; // no not show stick within 1 second of launch
+        }
+
         var transform;
         if (this.paused) {
             transform = this.cue_ball_physics_object.transform;
@@ -528,12 +551,15 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         else {
             transform = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
         }
-        this.shapes.arrow.draw(
+        this.shapes.stick.draw(
             graphics_state,
             transform
-                .times(Mat4.scale(Vec.of(0.5, 0.5, 1)))
-                .times(Mat4.rotation(arrow_angle, Vec.of(0, 1, 0))),
-            this.materials.arrow
+
+                .times(Mat4.rotation(arrow_angle  , Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(6, 10, 30)))
+                .times(Mat4.translation(Vec.of(-1.4, 0, 0)))
+                ,
+            stick_material
         );
     }
 
@@ -934,6 +960,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
         // if (this.launch_left > 0 || t < this.last_launch_time + 1) {
         if (! this.game_over) {
+
             if (this.reset) {
                 this.reset_scene(graphics_state);
                 this.reset = false;
@@ -951,7 +978,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                         this.arrow_angle = 0;
                     }
                 }
-                this.draw_arrow(graphics_state, this.arrow_angle);
+                this.draw_stick(graphics_state, this.arrow_angle);
             }
 
             if (!this.paused) {
