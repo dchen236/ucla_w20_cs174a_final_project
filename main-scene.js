@@ -16,6 +16,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         context.globals.graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
+        this.floor_offset = 3;
+        this.floor_thickness = .05;
+        this.hole_radius = 3;
         const shapes = {
             cue_ball: new Subdivision_Sphere(5),
             floor: new Cube(),
@@ -31,7 +34,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             // bounding cube is no longer used since we upgraded the skybox strategy
             bounding_cube: new Cube(),
             skybox: new Square_Map(50), //marker
-            hole: new Subdivision_Sphere(5), // mimic the whole
+            hole: new Hole(this.hole_radius, this.floor_offset - this.floor_thickness, 15, 15),
         };
         this.submit_shapes( context, shapes );
         this.materials = {
@@ -89,6 +92,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             }),
             hole:context.get_instance (Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.8,
+                specularity: 0,
+                diffuse: 0
             }),
             billiards_ball: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
                 ambient: 0.9,
@@ -117,6 +122,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 texture: context.get_instance("assets/casino.jpg", true)
             })
         };
+        this.draw_table = true;
 
         // audios associated with the project
         this.collide_sound = new Audio("assets/collide_sound.mp3");
@@ -128,11 +134,10 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.floor_height = 80;
         this.floor_transform =
             Mat4.identity()
-                .times(Mat4.translation(Vec.of(0, -3, 0)))
-                .times(Mat4.scale(Vec.of(this.floor_width / 2, 0.10, this.floor_height / 2)));
-
+                .times(Mat4.translation(Vec.of(0, -this.floor_offset, 0)))
+                .times(Mat4.scale(Vec.of(this.floor_width / 2, this.floor_thickness / 2, this.floor_height / 2)));
         this.default_time_constant = 1.0;
-        this.slow_motion_time_constant = 0.025;
+        this.slow_motion_time_constant = 0.05;
         this.current_time_constant = this.default_time_constant;
         this.paused = false;
         this.collision_guide_length = 5;
@@ -148,15 +153,14 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.arrow_speed = 1.5;
         this.ball_speed = .10;
         this.floor_damping = 0.0000275;
-        this.ball_damnumber_ballg = this.floor_damping;
-        this.number_ball_damnumber_ballg = this.floor_damping;
+        this.cue_ball_damping = this.floor_damping;
+        this.number_ball_damping = this.floor_damping;
         this.ball_mass = 1;
         this.number_ball_mass = 2;
         this.cue_ball_radius = 2;
         this.number_ball_radius = 2;
-        this.hole_radius = 2.5;
         this.num_number_balls = 0;
-        this.collide_adjust = 0;
+        this.collide_adjust = -this.number_ball_radius;
         this.launch_left = 5;
         this.arrow_speed = 2;
         this.number_ball_fell_into_hole = [];
@@ -167,7 +171,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 .times(Mat4.scale(Vec.of(this.cue_ball_radius, this.cue_ball_radius, this.cue_ball_radius)));
         this.cue_ball_physics_object =
             new PhysicsObject(
-                this.ball_damnumber_ballg,
+                this.cue_ball_damping,
                 this.ball_mass,
                 Mat4.identity(),
                 this.cue_ball_radius,
@@ -176,13 +180,13 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 Mat4.identity()
                     .times(Mat4.translation(Vec.of(0, 0, 10))));
         this.number_ball_physics_objects = [];
-        this.hole_objects = [];
+        this.hole_physics_objects = [];
         this.base_number_ball_transform =
             Mat4.identity()
                 .times(Mat4.scale(Vec.of(this.number_ball_radius, this.number_ball_radius, this.number_ball_radius)))
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
         this.initial_number_ball_transforms = [];
-        this.hole_transforms = []
+        this.hole_transforms = [];
         this.lock_camera_on_ball = false;
         this.lock_camera_on_number_ball = false;
         this.lock_camera_behind_ball = false;
@@ -206,9 +210,11 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.slow_motion = true;
         this.auto_pause_on_collision_toggle = true;
         this.auto_pause_on_collision = true;
+        this.found_hole_collision = false;
 
         // initializations
         this.initialize_triangle_number_balls();
+        this.initialize_holes();
 
     }
 
@@ -216,7 +222,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         let ball_spacing = 3.25;
         let x_initial = 0;
         let z_initial = -5;
-        let triangle_height = 1;
+        let triangle_height = 0;
         let i = 0;
         this.num_number_balls = 0;
 
@@ -229,7 +235,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.initial_number_ball_transforms[i] = number_ball_transform;
                 this.number_ball_physics_objects[i] =
                     new PhysicsObject(
-                        this.number_ball_damnumber_ballg,
+                        this.number_ball_damping,
                         this.number_ball_mass,
                         number_ball_transform,
                         this.number_ball_radius,
@@ -335,6 +341,10 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 }
             }
         );
+        this.key_triggered_button("Toggle table", ["q"], () =>
+            this.draw_table = !this.draw_table
+        );
+        this.new_line();
     }
 
     update_camera_transform(graphics_state) {
@@ -385,6 +395,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 
     reset_scene(graphics_state) {
+        this.found_hole_collision = false;
+        this.slow_motion_toggle = true;
+        this.slow_motion = true;
         this.collision_results = [];
         this.cue_ball_transform = Mat4.identity();
         this.cue_ball_physics_object.reset();
@@ -433,19 +446,25 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         //     this.bounding_cube_transform,
         //     this.materials.bounding_cube
         // );
-        if (!this.dark_mode) {
-            this.shapes.floor.draw(
-                graphics_state,
-                this.floor_transform,
-                this.materials.floor
-            );
-        } else {
-            this.shapes.floor.draw(
-                graphics_state,
-                this.floor_transform,
-                this.materials.floor_dark
-            );
+
+        this.draw_holes(graphics_state);
+
+        if (this.draw_table) {
+            if (!this.dark_mode) {
+                this.shapes.floor.draw(
+                    graphics_state,
+                    this.floor_transform,
+                    this.materials.floor
+                );
+            } else {
+                this.shapes.floor.draw(
+                    graphics_state,
+                    this.floor_transform,
+                    this.materials.floor_dark
+                );
+            }
         }
+
 
         this.wall_transform_north =
             Mat4.identity()
@@ -558,6 +577,47 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    initialize_holes() {
+        for (let i = 0; i < 3; i++) {
+            const wall_offset = 1;
+            let z_coordinate = this.floor_height / 2 - (this.floor_height / 2) * i;
+            if (z_coordinate != 0)
+                z_coordinate += - z_coordinate / Math.abs(z_coordinate) * (this.hole_radius + wall_offset);
+
+            let left_hole_transformation = Mat4.identity().times(
+                Mat4.translation([-this.floor_width / 2 + (this.hole_radius + wall_offset), 0, z_coordinate])
+            );
+
+            let right_hole_transformation = Mat4.identity().times(
+                Mat4.translation([this.floor_width / 2 - (this.hole_radius + wall_offset), 0, z_coordinate])
+            );
+            this.hole_physics_objects.push(new PhysicsObject(this.number_ball_damping,
+                this.number_ball_mass,
+                left_hole_transformation, this.hole_radius, this.default_time_constant,
+                "hole " + (i + 1),
+                Mat4.identity())
+            );
+            this.hole_physics_objects.push(new PhysicsObject(this.number_ball_damping,
+                this.number_ball_mass,
+                right_hole_transformation, this.hole_radius, this.default_time_constant,
+                "hole " + (i + 2),
+                Mat4.identity())
+            );
+            this.hole_transforms.push(left_hole_transformation);
+            this.hole_transforms.push(right_hole_transformation);
+        }
+    }
+
+    draw_holes(graphics_state) {
+        for (let i = 0; i < this.hole_transforms.length; i++) {
+            this.shapes.hole.draw(
+                graphics_state,
+                this.hole_transforms[i],
+                this.materials.hole
+            );
+        }
+    }
+
     determine_number_ball_texture(i) {
         if(i === 0){
             return `assets/ball_1.jpg`;
@@ -638,17 +698,26 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
     get_distance(p1, p2) {
         let xs = p1[0] - p2[0];
-        let ys = p1[1] - p2[1];
+        //let ys = p1[1] - p2[1];
         let zs = p1[2] - p2[2];
-        return Math.sqrt(xs * xs + ys * ys + zs * zs);
+        return Math.sqrt(xs * xs + zs * zs);
     }
 
-    check_if_collide(o1, o2) {
-        // console.log("collision check: ");
+    check_if_collide(o1, o2, use_collide_adjust) {
         let o1_center = o1.get_center();
         let o2_center = o2.get_center();
         let distance = this.get_distance(o1_center, o2_center);
-        const found_collision = distance <= o1.radius + o2.radius + this.collide_adjust;
+        //
+        // console.log(
+        //     "collision check for [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
+        //     o1.object_tag + " center: " + o1_center  + "\n" +
+        //     o2.object_tag + " center: " + o2_center + "\n" +
+        //     o1.object_tag + " radius: " + o1.radius + "\n" +
+        //     o2.object_tag + " radius: " + o2.radius + "\n" +
+        //     "distance: " + distance
+        // );
+
+        const found_collision = distance <= o1.radius + o2.radius + (use_collide_adjust? this.collide_adjust : 0);
         if (found_collision) {
             console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
                             o1.object_tag + " center: " + o1_center  + "\n" +
@@ -674,13 +743,11 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
-
-
     handle_ball_collisions() {
         // check if ball collide 0th number_ball
         let score_multiplier = 1;
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
-            if (this.check_if_collide(this.cue_ball_physics_object, this.number_ball_physics_objects[i]) ) {
+            if (this.check_if_collide(this.cue_ball_physics_object, this.number_ball_physics_objects[i], false) ) {
                 console.log("did ball to number_ball collide");
                 this.do_collision(this.cue_ball_physics_object, this.number_ball_physics_objects[i], false);
             }
@@ -689,7 +756,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             for (let j = i + 1; j < this.number_ball_physics_objects.length; j++) {
                 if (!this.number_ball_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0)) ||
                     !this.number_ball_physics_objects[j].force_vector.equals(Vec.of(0, 0, 0))) {
-                    if (this.check_if_collide(this.number_ball_physics_objects[i], this.number_ball_physics_objects[j])) {
+                    if (this.check_if_collide(this.number_ball_physics_objects[i], this.number_ball_physics_objects[j], false)) {
                         this.do_collision(this.number_ball_physics_objects[i], this.number_ball_physics_objects[j], false);
                     }
                 }
@@ -705,6 +772,23 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
             if (!this.number_ball_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0))) {
                 this.do_wall_collision(this.number_ball_physics_objects[i]);
+            }
+        }
+    }
+
+    handle_hole_collisions() {
+        for (let i = 0; i < this.hole_transforms.length; i++) {
+            if (this.check_if_collide(this.cue_ball_physics_object, this.hole_physics_objects[i], true)) {
+                this.cue_ball_physics_object.enable_gravity();
+                if (!this.found_hole_collision) {
+                    this.found_hole_collision = true;
+                    this.slow_motion_toggle = true;
+                    // this.cue_ball_physics_object.force_vector = Vec.of(
+                    //     this.cue_ball_physics_object.force_vector[0],
+                    //     this.cue_ball_physics_object.force_vector[1],
+                    //     this.cue_ball_physics_object.force_vector[2] * .5
+                    // )
+                }
             }
         }
     }
@@ -830,7 +914,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 
     display( graphics_state )
-    { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
+    {
+        graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
 
         if (this.slow_motion_toggle) {
             this.toggle_slow_motion();
@@ -872,6 +957,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             if (!this.paused) {
                 this.handle_ball_collisions();
                 this.handle_wall_collisions();
+                this.handle_hole_collisions();
             }
 
             if (this.enable_collision_markers) {
@@ -899,3 +985,32 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
     }
 }
+
+window.Hole = window.classes.Hole =
+class Hole extends Shape {
+    constructor(radius, floor_offset, rows, columns, texture_range) {
+        super( "positions", "normals", "texture_coords" );
+
+        const hole_radius = radius;
+        const hole_height = 10;
+        const hole_vertical_offset = floor_offset + hole_height / 2;
+
+        Cylindrical_Tube.insert_transformed_copy_into(
+            this,
+            [15, 15, texture_range],
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(0, -hole_vertical_offset, 0)))
+                .times(Mat4.scale(Vec.of(hole_radius, hole_height / 2, hole_radius)))
+                .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))
+        );
+
+        Grid_Sphere.insert_transformed_copy_into(
+            this,
+            [10, 10, texture_range],
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(0, hole_height/2 - hole_vertical_offset, 0)))
+                .times(Mat4.scale(Vec.of(hole_radius, 0.001, hole_radius)))
+        );
+
+    }
+};

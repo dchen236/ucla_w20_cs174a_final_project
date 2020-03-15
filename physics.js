@@ -13,12 +13,15 @@ window.PhysicsObject = window.classes.PhysicsObject =
             this.radius = radius;
             this.time_constant = time_constant;
             this.object_tag = object_tag;
+            this.gravity = false;
+            this.current_gravity_force = 0;
         }
 
         reset() {
             this.transform = this.initial_transform;
             this.center = this.center_transform.times(Vec.of(0, 0, 0, 1));
             this.force_vector = Vec.of(0, 0, 0);
+            this.disable_gravity();
         }
 
         apply_force(force_vector) {
@@ -52,8 +55,17 @@ window.PhysicsObject = window.classes.PhysicsObject =
             return this.transform.times(this.center);
         }
 
+        enable_gravity() {
+            this.gravity = true;
+        }
+
+        disable_gravity() {
+            this.current_gravity_force = 0;
+            this.gravity = false;
+        }
+
         update_and_get_transform(graphics_state) {
-            if (this.force_vector.equals(Vec.of(0, 0, 0)))
+            if (this.force_vector.equals(Vec.of(0, 0, 0)) && !this.gravity)
                 return this.transform;
 
             this.force_vector[2] =
@@ -63,12 +75,17 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 this.force_vector[2] = 0;
             const force_vector_x_y_z = PhysicsObject.calculate_x_y_z(this.force_vector);
 
+            if (this.gravity) {
+                this.current_gravity_force -= 9.8 * graphics_state.animation_delta_time * .0001;
+            }
+
             const delta_translation =
                 Mat4.identity()
                     .times(Mat4.translation(
                         Vec.of(
                             force_vector_x_y_z[0] * graphics_state.animation_delta_time * this.time_constant,
-                            force_vector_x_y_z[1] * graphics_state.animation_delta_time * this.time_constant,
+                            force_vector_x_y_z[1] * graphics_state.animation_delta_time * this.time_constant +
+                            this.current_gravity_force * this.time_constant,
                             force_vector_x_y_z[2] * graphics_state.animation_delta_time * this.time_constant)
                         )
                     );
