@@ -462,6 +462,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     this.materials.floor_dark
                 );
             }
+        }
+
         if (!this.dark_mode) {
             this.shapes.floor.draw(
                 graphics_state,
