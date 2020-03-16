@@ -132,16 +132,11 @@ window.PhysicsObject = window.classes.PhysicsObject =
         }
 
         static calculate_elastic_collision(o1, o2, add_center_adjust) {
-            // calculate magnitude of final forces on objects
-            const o1_fv_init = o1.force_vector;
-            const o2_fv_init = o2.force_vector;
+
+            const o1_fv_init = Vec.of(o1.force_vector[0], o1.force_vector[1], o1.force_vector[2]);
+            const o2_fv_init = Vec.of(o2.force_vector[0], o2.force_vector[1], o2.force_vector[2]);
             const o1_fv_x_y_z_init = PhysicsObject.calculate_x_y_z(o1_fv_init);
             const o2_fv_x_y_z_init = PhysicsObject.calculate_x_y_z(o2_fv_init);
-            const vf_x = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, 0);
-            const vf_y = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, 1);
-            const vf_z = PhysicsObject.calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, 2);
-            o1.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[0], vf_y[0], vf_z[0]));
-            o2.force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(Vec.of(vf_x[1], vf_y[1], vf_z[1]));
 
             // calculate object centers, collision normal
             const o1_center = o1.get_center();
@@ -165,12 +160,14 @@ window.PhysicsObject = window.classes.PhysicsObject =
                     o1_fv_x_y_z_normal_theta >= Math.PI / 2 && o1_fv_x_y_z_normal_theta <= Math.PI) {
                     console.log("[" + o2.object_tag + "] is behind [" + o1.object_tag + "]");
                     // adjust angle of final forces on objects based on whether the collision was a glancing collision
+                    o1_info = [Vec.of(o1_center[0], o1_center[1], o1_center[2]), 0, 0, o1_fv_init[0]];
                     o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o2_center, o1, normal.times(-1));
                 }
                 else {
                     console.log("[" + o1.object_tag + "] is behind [" + o2.object_tag + "]");
                     // adjust angle of final forces on objects based on whether the collision was a glancing collision
                     o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o1_center, o2, normal);
+                    o2_info = [Vec.of(o1_center[0], o1_center[1], o1_center[2]), 0, 0, o2_fv_init[0]];
                 }
             }
             else {
@@ -179,6 +176,18 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 o1_info = PhysicsObject.update_object_fv_angle(o1_fv_x_y_z_init, o1, o1_center, o2, normal);
                 o2_info = PhysicsObject.update_object_fv_angle(o2_fv_x_y_z_init, o2, o2_center, o1, normal.times(-1));
             }
+
+            // calculate magnitude of final forces on objects
+            const vf = PhysicsObject.calculate_elastic_collision_2d(
+                o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, o1_info[3], o2_info[3]
+            );
+            o1.force_vector[2] = vf[0];
+            o2.force_vector[2] = vf[1];
+            console.log(
+                "final force vectors: " +
+                "o1 final force vector (x, y, z): " + PhysicsObject.calculate_x_y_z(o1.force_vector) + "\n" +
+                "o2 final force vector (x, y, z): " + PhysicsObject.calculate_x_y_z(o2.force_vector)
+            );
 
             if (add_center_adjust) {
                 // adjust center of o1 to avoid subsequent incorrect collision calculations
@@ -192,8 +201,13 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 o1.transform[2][3] += offset_vector[2];
             }
 
-            console.log("final [" + o1.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o1.force_vector));
-            console.log("final [" + o2.object_tag + "] force vector: " + PhysicsObject.calculate_x_y_z(o2.force_vector));
+            console.log(
+                "Collision info: " + "\n" +
+                "init [" + o1.object_tag + "] force vector: " + o1_fv_init + "\n" +
+                "init [" + o2.object_tag + "] force vector: " + o2_fv_init + "\n" +
+                "final [" + o1.object_tag + "] force vector: " + o1.force_vector + "\n" +
+                "final [" + o2.object_tag + "] force vector: " + o2.force_vector
+            );
 
             const ret = [o1_info, o2_info];
 
@@ -213,31 +227,68 @@ window.PhysicsObject = window.classes.PhysicsObject =
             const reflection_rotation = PhysicsObject.normalize_angle(normal_rotation - zx_collision_theta - Math.PI);
             o1.force_vector[0] = reflection_rotation;
 
-            console.log("---");
-            console.log("collision normal: " + normal);
-            console.log("normal theta: " + (normal_theta * (180 / Math.PI)));
-            console.log("[" + o1.object_tag + "] fv_x_y_z_init: " + o1_fv_x_y_z_init);
-            console.log("zx collision theta: " + (zx_collision_theta * 180 / Math.PI));
-            console.log("normal_rotation: " + normal_rotation * 180 / Math.PI);
-            console.log("collision_rotation: " + collision_rotation * 180 / Math.PI);
-            console.log("reflection_rotation: " + reflection_rotation * 180 / Math.PI);
-            console.log("---");
+            // console.log("---");
+            // console.log("collision normal: " + normal);
+            // console.log("normal theta: " + (normal_theta * (180 / Math.PI)));
+            // console.log("[" + o1.object_tag + "] fv_x_y_z_init: " + o1_fv_x_y_z_init);
+            // console.log("zx collision theta: " + (zx_collision_theta * 180 / Math.PI));
+            // console.log("normal_rotation: " + normal_rotation * 180 / Math.PI);
+            // console.log("collision_rotation: " + collision_rotation * 180 / Math.PI);
+            // console.log("reflection_rotation: " + reflection_rotation * 180 / Math.PI);
+            // console.log("---");
 
             return [
-                Mat4.translation(Vec.of(o1_center[0], o1_center[1], o1_center[2])),
-                Mat4.rotation( normal_rotation, Vec.of(0, 1, 0)),
-                Mat4.rotation( collision_rotation, Vec.of(0, 1, 0)),
-                Mat4.rotation( reflection_rotation, Vec.of(0, 1, 0))
+                Vec.of(o1_center[0], o1_center[1], o1_center[2]),
+                normal_rotation,
+                collision_rotation,
+                reflection_rotation
             ];
         }
 
-        static calculate_elastic_collision_1d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, index) {
-            const vo_o1 = o1_fv_x_y_z[index];
-            const vo_o2 = o2_fv_x_y_z[index];
+        static calculate_elastic_collision_2d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, o1_final_angle, o2_final_angle) {
 
-            const vf_o2 = (-o1.mass*vo_o2 + 2*o1.mass*vo_o1 + o2.mass*vo_o2)/(o1.mass + o2.mass);
-            const vf_o1 = (o1.mass*vo_o1 + o2.mass*vo_o2 - o2.mass*vf_o2)/o1.mass;
-            return Vec.of(vf_o1, vf_o2);
+            const o1_magnitude_init = o1.force_vector[2];
+            const o2_magnitude_init = o2.force_vector[2];
+            const magnitude_init = o1_magnitude_init + o2_magnitude_init;
+
+            console.log(
+                "elastic collision magnitude calculation inputs: " + "\n" +
+                "o1_fv: " + o1.force_vector + "\n" +
+                "o2_fv: " + o2.force_vector + "\n" +
+                "o1_fv_x_y_z: " + o1_fv_x_y_z + "\n" +
+                "o2_fv_x_y_z: " + o2_fv_x_y_z + "\n" +
+                "o1_final_angle: " + (o1_final_angle * 180 / Math.PI) + "\n" +
+                "o2_final_angle: " + (o2_final_angle * 180 / Math.PI) + "\n" +
+                "original total force magnitude: " + magnitude_init
+            );
+
+            const o1_x = o1_fv_x_y_z[0];
+            const o2_x = o2_fv_x_y_z[0];
+            const o1_z = o1_fv_x_y_z[2];
+            const o2_z = o2_fv_x_y_z[2];
+
+            const o2_final_u =
+                Math.abs(
+                (o1_z + o2_z - (1 / Math.tan(o1_final_angle)) * (o1_x + o2_x))
+                /
+                (Math.cos(o2_final_angle) + (1 / Math.tan(o1_final_angle)) * Math.sin(o2_final_angle))
+                );
+            const o1_final_u =
+                Math.abs(
+                (o1_x + o2_x - Math.sin(o2_final_angle) * o2_final_u)
+                /
+                (Math.sin(o1_final_angle))
+                );
+
+            const o1_final = (o1_final_u / (o1_final_u + o2_final_u)) * (magnitude_init);
+            const o2_final = (o2_final_u / (o1_final_u + o2_final_u)) * (magnitude_init);
+
+            console.log(
+                "elastic collision magnitude calculation results: " + "\n" +
+                "o2 final: " + o2_final + "\n" +
+                "o1 final: " + o1_final
+            );
+            return [o1_final, o2_final];
         }
 
         static calculate_vector_angle(v1, v2) {

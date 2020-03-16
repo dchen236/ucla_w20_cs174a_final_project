@@ -175,16 +175,16 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
         // game parameters
         this.arrow_speed = 1.5;
-        this.ball_speed = .10;
-        this.floor_damping = 0.0000275;
+        this.ball_speed = .20;
+        this.floor_damping = 0.00001375;
         this.cue_ball_damping = this.floor_damping;
         this.number_ball_damping = this.floor_damping;
-        this.ball_mass = 1;
+        this.cue_ball_mass = 2;
         this.number_ball_mass = 2;
         this.cue_ball_radius = 2;
         this.number_ball_radius = 2;
         this.num_number_balls = 0;
-        this.collide_adjust = -this.number_ball_radius;
+        this.collide_adjust = -this.number_ball_radius * 2;
         this.launch_left = 5;
         this.arrow_speed = 2;
         this.number_ball_fell_into_hole = [];
@@ -197,7 +197,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.cue_ball_physics_object =
             new PhysicsObject(
                 this.cue_ball_damping,
-                this.ball_mass,
+                this.cue_ball_mass,
                 Mat4.identity(),
                 this.cue_ball_radius,
                 this.default_time_constant,
@@ -729,8 +729,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     this.shapes.collision_guide.draw(
                         graphics_state,
                         Mat4.identity()
-                            .times(o_info[0])
-                            .times(o_info[1])
+                            .times(Mat4.translation(o_info[0]))
+                            .times(Mat4.rotation(o_info[1], Vec.of(0, 1, 0)))
                             .times(this.initial_collision_guide_transform),
                         this.materials.collision_guide.override({
                             color: this.collision_guide_colors[j][0]
@@ -739,8 +739,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     this.shapes.collision_guide.draw(
                         graphics_state,
                         Mat4.identity()
-                            .times(o_info[0])
-                            .times(o_info[2])
+                            .times(Mat4.translation(o_info[0]))
+                            .times(Mat4.rotation(o_info[2], Vec.of(0, 1, 0)))
                             .times(this.initial_collision_guide_transform),
                         this.materials.collision_guide.override({
                             color: this.collision_guide_colors[j][1]
@@ -749,8 +749,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     this.shapes.collision_guide.draw(
                         graphics_state,
                         Mat4.identity()
-                            .times(o_info[0])
-                            .times(o_info[3])
+                            .times(Mat4.translation(o_info[0]))
+                            .times(Mat4.rotation(o_info[3], Vec.of(0, 1, 0)))
                             .times(this.initial_collision_guide_transform)
                             .times(Mat4.translation(Vec.of(0, 0.5, 0))),
                         this.materials.collision_guide.override({
@@ -1054,7 +1054,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             if (!this.paused) {
                 this.handle_ball_collisions();
                 this.handle_wall_collisions();
-                this.handle_hole_collisions();
+                //this.handle_hole_collisions();
             }
 
             if (this.enable_collision_markers) {
