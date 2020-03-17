@@ -191,6 +191,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // game state
         this.user_just_launched_ball = false;
         this.cue_ball_transform = Mat4.identity();
+        this.cue_ball_hole_capture = undefined;
         this.initial_cue_ball_transform =
             Mat4.identity()
                 .times(Mat4.scale(Vec.of(this.cue_ball_radius, this.cue_ball_radius, this.cue_ball_radius)));
@@ -205,6 +206,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 Mat4.identity()
                     .times(Mat4.translation(Vec.of(0, 0, 10))));
         this.number_ball_physics_objects = [];
+        this.number_ball_hole_captures = [];
         this.hole_physics_objects = [];
         this.base_number_ball_transform =
             Mat4.identity()
@@ -271,6 +273,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                         this.default_time_constant,
                         "number_ball " + (i + 1),
                         Mat4.identity());
+                this.number_ball_hole_captures[i] = undefined;
                 this.number_ball_fell_into_hole[i] = false;
                 this.num_number_balls++;
                 i++;
@@ -431,6 +434,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.collision_results = [];
         this.cue_ball_transform = Mat4.identity();
         this.cue_ball_physics_object.reset();
+        this.cue_ball_hole_capture = undefined;
         this.ball_launched = false;
         graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
         // for (let i = 0; i < this.num_number_balls; i++) {
@@ -795,17 +799,17 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         let distance = this.get_distance(o1_center, o2_center);
         let required_distance = (o1.radius + o2.radius + (hole_collide ? this.collide_adjust : 0));
 
-        if (distance < 2 * required_distance) {
-            console.log(
-                "collision check for [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
-                o1.object_tag + " center: " + o1_center + "\n" +
-                o2.object_tag + " center: " + o2_center + "\n" +
-                o1.object_tag + " radius: " + o1.radius + "\n" +
-                o2.object_tag + " radius: " + o2.radius + "\n" +
-                "distance: " + distance + "\n" +
-                "required distance: " + required_distance
-            );
-        }
+        // if (distance < 2 * required_distance) {
+        //     console.log(
+        //         "collision check for [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
+        //         o1.object_tag + " center: " + o1_center + "\n" +
+        //         o2.object_tag + " center: " + o2_center + "\n" +
+        //         o1.object_tag + " radius: " + o1.radius + "\n" +
+        //         o2.object_tag + " radius: " + o2.radius + "\n" +
+        //         "distance: " + distance + "\n" +
+        //         "required distance: " + required_distance
+        //     );
+        // }
 
         const found_collision =
             distance <= required_distance * (hole_collide ? 2 : 1) &&
@@ -871,16 +875,34 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 
     handle_hole_collisions() {
+
+        if (this.cue_ball_hole_capture != undefined) {
+            //console.log("Cue ball was captured by hole " + this.cue_ball_hole_capture.object_tag);
+            if (this.cue_ball_physics_object.get_center()[1] > -10) {
+                PhysicsObject.calculate_elastic_collision(this.cue_ball_physics_object, this.cue_ball_hole_capture);
+                this.hole_adjust_center(this.cue_ball_physics_object, this.cue_ball_hole_capture);
+            }
+        }
+
+        for (let i = 0; i < this.number_ball_hole_captures.length; i++) {
+            if (this.number_ball_hole_captures[i] != undefined) {
+                const hole = this.number_ball_hole_captures[i];
+                const ball = this.number_ball_physics_objects[i];
+                // console.log(
+                //     "[" + ball.object_tag + "] was captured by hole ["
+                //     + hole.object_tag + "]"
+                // );
+                if (ball.get_center()[1] > -10) {
+                    PhysicsObject.calculate_elastic_collision(ball, hole);
+                    this.hole_adjust_center(ball, hole);
+                }
+            }
+        }
+
         for (let i = 0; i < this.hole_transforms.length; i++) {
             if (this.check_if_collide(this.cue_ball_physics_object, this.hole_physics_objects[i], true)) {
                 this.cue_ball_physics_object.enable_gravity();
-                // this.slow_motion_toggle = true;
-                // this.slow_motion = false;
-                // this.cue_ball_physics_object.force_vector = Vec.of(
-                //     this.cue_ball_physics_object.force_vector[0],
-                //     this.cue_ball_physics_object.force_vector[1],
-                //     this.cue_ball_physics_object.force_vector[2] * .5
-                // )
+                this.cue_ball_hole_capture = this.hole_physics_objects[i];
             }
         }
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
@@ -889,16 +911,37 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     if (this.check_if_collide(this.number_ball_physics_objects[i], this.hole_physics_objects[j],
                         true)) {
                         this.number_ball_physics_objects[i].enable_gravity();
-                        // this.slow_motion_toggle = true;
-                        // this.slow_motion = false;
-                        // this.number_ball_physics_objects[i].force_vector = Vec.of(
-                        //     this.number_ball_physics_objects[i].force_vector[0],
-                        //     this.number_ball_physics_objects[i].force_vector[1],
-                        //     this.number_ball_physics_objects[i].force_vector[2] * .5
-                        // )
+                        this.number_ball_hole_captures[i] = this.hole_physics_objects[j];
                     }
                 }
             }
+        }
+    }
+
+    hole_adjust_center(ball, hole) {
+        // assumes hole radius is larger than ball radius
+        const ball_center = ball.get_center();
+        const hole_center = hole.get_center();
+        const distance = this.get_distance(hole_center, ball_center);
+        if (distance > hole.radius - ball.radius) {
+            const adjust_distance = ball.radius + (distance - hole.radius);
+            const ball_vec_angle = PhysicsObject.calculate_vector_angle(
+                Vec.of(0, 0, 1),
+                Vec.of(ball_center[0] - hole_center[0], 0, ball_center[2] - hole_center[2])
+            );
+            // console.log(
+            //     "adjusting center of captured ball " + ball.object_tag + ": " + "\n" +
+            //     "ball center: " + ball_center + "\n" +
+            //     "hole center: " + hole_center + "\n" +
+            //     "distance: " + distance + "\n" +
+            //     "radial difference: " + (hole.radius - ball.radius) + "\n" +
+            //     "ball_vec_angle: " + (ball_vec_angle * 180 / Math.PI) + "\n" +
+            //     "adjust_distance: " + adjust_distance + "\n" +
+            //     "x adjust: " + (Math.sin(ball_vec_angle) * adjust_distance) + "\n" +
+            //     "z adjust: " + (Math.cos(ball_vec_angle) * adjust_distance) + "\n"
+            // );
+            ball.transform[0][3] -= Math.sin(ball_vec_angle) * adjust_distance;
+            ball.transform[2][3] -= Math.cos(ball_vec_angle) * adjust_distance;
         }
     }
 
@@ -1073,8 +1116,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
             if (!this.ball_launched) {
                 if (!this.paused) {
-                    //this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
-                    this.arrow_angle = 3.195653086303271;
+                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
                     if (this.arrow_angle >= 2 * Math.PI) {
                         this.arrow_angle = 0;
                     }
