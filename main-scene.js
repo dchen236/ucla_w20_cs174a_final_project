@@ -610,23 +610,26 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 
     draw_ball(graphics_state) {
-        var transform = this.cue_ball_physics_object.transform;
-        if (!this.paused) {
-            const new_transforms = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
-            transform = new_transforms[0];
+        if (this.cue_ball_physics_object.get_center()[1] >= -2 * this.cue_ball_physics_object.radius) {
+            var transform = this.cue_ball_physics_object.transform;
+            if (!this.paused) {
+                const new_transforms = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
+                transform = new_transforms[0];
+            }
+            this.cue_ball_transform =
+                transform.times(this.initial_cue_ball_transform);
+            this.shapes.cue_ball.draw(
+                graphics_state,
+                this.cue_ball_transform,
+                this.materials.cue_ball
+            );
         }
-        this.cue_ball_transform =
-            transform.times(this.initial_cue_ball_transform);
-        this.shapes.cue_ball.draw(
-            graphics_state,
-            this.cue_ball_transform,
-            this.materials.cue_ball
-        );
     }
 
     draw_number_balls(graphics_state) {
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
-            if (!this.number_ball_fell_into_hole[i]) {
+            if (!this.number_ball_fell_into_hole[i] &&
+                this.number_ball_physics_objects[i].get_center()[1] >= -2 * this.number_ball_physics_objects[i].radius) {
                 let image_filename = this.determine_number_ball_texture(i);
                 let material =
                     this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
@@ -812,7 +815,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // }
 
         const found_collision =
-            distance <= required_distance * (hole_collide ? 2 : 1) &&
+            distance <= required_distance * (hole_collide ? 1.5 : 1) &&
             o1_center[1] == o2_center[1]; // to prevent balls that have fallen off table from colliding
         if (found_collision) {
             console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
