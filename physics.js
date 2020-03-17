@@ -24,6 +24,7 @@ window.PhysicsObject = window.classes.PhysicsObject =
             this.center = this.center_transform.times(Vec.of(0, 0, 0, 1));
             this.force_vector = Vec.of(0, 0, 0);
             this.current_rotation = Mat4.identity();
+            this.last_zx_fv_angle = 0;
             this.disable_gravity();
         }
 
@@ -110,11 +111,11 @@ window.PhysicsObject = window.classes.PhysicsObject =
                     this.current_rotation.times(
                         Mat4.rotation(distance / this.radius, rotation_axis)
                     );
-                console.log(
-                    this.object_tag + ": " + "\n" +
-                    "rotation axis: " + rotation_axis + "\n" +
-                    "current rotation angle: " + distance / this.radius
-                );
+                // console.log(
+                //     this.object_tag + ": " + "\n" +
+                //     "rotation axis: " + rotation_axis + "\n" +
+                //     "current rotation angle: " + distance / this.radius
+                // );
             }
 
             return [this.transform, this.current_rotation, this.last_zx_fv_angle + Math.PI / 2];

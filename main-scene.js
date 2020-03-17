@@ -255,7 +255,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.num_number_balls = 0;
 
         for (let z = z_initial; z > z_initial - triangle_height; z--) {
-            for (let x = x_initial - (z_initial - z); x < (1 + 2 * (z_initial - z))/2; x+=2) {
+            for (let x = x_initial - (z_initial - z); x < x_initial + (1 + 2 * (z_initial - z))/2; x+=2) {
                 console.log("spawning number_ball at " + "[" + x + ", " + z + "]");
                 let number_ball_transform = Mat4.identity()
                     .times(Mat4.translation(Vec.of(x * ball_spacing, 0, z * ball_spacing)))
@@ -433,10 +433,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.cue_ball_physics_object.reset();
         this.ball_launched = false;
         graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
-        for (let i = 0; i < this.num_number_balls; i++) {
-            this.number_ball_physics_objects[i].reset();
-         //   console.log("number_ball " + i + " :" + this.number_ball_physics_objects[i].center);
-        }
+        // for (let i = 0; i < this.num_number_balls; i++) {
+        //     this.number_ball_physics_objects[i].reset();
+        //     this.number_ball_rotation_transforms[i] = Mat4.identity();
+        //  //   console.log("number_ball " + i + " :" + this.number_ball_physics_objects[i].center);
+        // }
+        this.initialize_triangle_number_balls();
         // console.log("ball: " + this.cue_ball_physics_object.center);
 
     }
@@ -784,24 +786,30 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         let xs = p1[0] - p2[0];
         //let ys = p1[1] - p2[1];
         let zs = p1[2] - p2[2];
-        return Math.sqrt(xs * xs + zs * zs);
+        return Math.sqrt(xs**2 + zs**2);
     }
 
-    check_if_collide(o1, o2, use_collide_adjust) {
+    check_if_collide(o1, o2, hole_collide) {
         let o1_center = o1.get_center();
         let o2_center = o2.get_center();
         let distance = this.get_distance(o1_center, o2_center);
-        //
-        // console.log(
-        //     "collision check for [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
-        //     o1.object_tag + " center: " + o1_center  + "\n" +
-        //     o2.object_tag + " center: " + o2_center + "\n" +
-        //     o1.object_tag + " radius: " + o1.radius + "\n" +
-        //     o2.object_tag + " radius: " + o2.radius + "\n" +
-        //     "distance: " + distance
-        // );
+        let required_distance = (o1.radius + o2.radius + (hole_collide ? this.collide_adjust : 0));
 
-        const found_collision = distance <= o1.radius + o2.radius + (use_collide_adjust? this.collide_adjust : 0);
+        if (distance < 2 * required_distance) {
+            console.log(
+                "collision check for [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
+                o1.object_tag + " center: " + o1_center + "\n" +
+                o2.object_tag + " center: " + o2_center + "\n" +
+                o1.object_tag + " radius: " + o1.radius + "\n" +
+                o2.object_tag + " radius: " + o2.radius + "\n" +
+                "distance: " + distance + "\n" +
+                "required distance: " + required_distance
+            );
+        }
+
+        const found_collision =
+            distance <= required_distance * (hole_collide ? 2 : 1) &&
+            o1_center[1] == o2_center[1]; // to prevent balls that have fallen off table from colliding
         if (found_collision) {
             console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
                             o1.object_tag + " center: " + o1_center  + "\n" +
@@ -811,6 +819,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                             "distance: " + distance
             );
         }
+
         return found_collision;
     }
 
@@ -828,6 +837,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 
     handle_ball_collisions() {
+
         // check if ball collide 0th number_ball
         let score_multiplier = 1;
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
@@ -864,8 +874,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         for (let i = 0; i < this.hole_transforms.length; i++) {
             if (this.check_if_collide(this.cue_ball_physics_object, this.hole_physics_objects[i], true)) {
                 this.cue_ball_physics_object.enable_gravity();
-                this.slow_motion_toggle = true;
-                this.slow_motion = false;
+                // this.slow_motion_toggle = true;
+                // this.slow_motion = false;
                 // this.cue_ball_physics_object.force_vector = Vec.of(
                 //     this.cue_ball_physics_object.force_vector[0],
                 //     this.cue_ball_physics_object.force_vector[1],
@@ -879,8 +889,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     if (this.check_if_collide(this.number_ball_physics_objects[i], this.hole_physics_objects[j],
                         true)) {
                         this.number_ball_physics_objects[i].enable_gravity();
-                        this.slow_motion_toggle = true;
-                        this.slow_motion = false;
+                        // this.slow_motion_toggle = true;
+                        // this.slow_motion = false;
                         // this.number_ball_physics_objects[i].force_vector = Vec.of(
                         //     this.number_ball_physics_objects[i].force_vector[0],
                         //     this.number_ball_physics_objects[i].force_vector[1],
@@ -1063,8 +1073,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
             if (!this.ball_launched) {
                 if (!this.paused) {
-                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
-                    //this.arrow_angle = Math.PI - .05;
+                    //this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
+                    this.arrow_angle = 3.195653086303271;
                     if (this.arrow_angle >= 2 * Math.PI) {
                         this.arrow_angle = 0;
                     }
@@ -1075,7 +1085,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             if (!this.paused) {
                 this.handle_ball_collisions();
                 this.handle_wall_collisions();
-                //this.handle_hole_collisions();
+                this.handle_hole_collisions();
             }
 
             if (this.enable_collision_markers) {
