@@ -83,13 +83,11 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 ambient: 1,
                 texture: context.get_instance( "assets/casino_left_right_dimmed.jpg", false )
             } ),
-            shadow_light: context.get_instance(Shadow_Shader).material( Color.of(0, 75/255, 0, 1 ), {
+            shadow_light: context.get_instance(Shadow_Shader).material( Color.of(0, 70/255, 0, 1 ), {
                 ambient: 1,
                 texture: this.texture,
-                diffusivity: 1,
-                specularity: 0.5
             } ),
-            shadow_dark: context.get_instance(Shadow_Shader).material( Color.of(0, 40/255, 0, 1 ), {
+            shadow_dark: context.get_instance(Reflection_Shader).material( Color.of(0, 30/255, 0, 1 ), {
                 ambient: 1,
                 texture: this.texture,
             } ),
