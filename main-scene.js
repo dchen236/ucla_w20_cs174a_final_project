@@ -161,7 +161,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 .times(Mat4.translation(Vec.of(0, -this.floor_offset, 0)))
                 .times(Mat4.scale(Vec.of(-1 * this.floor_width / 2, this.floor_thickness / 2, this.floor_height / 2)));
         this.default_time_constant = 1.0;
-        this.slow_motion_time_constant = 0.05;
+        this.slow_motion_time_constant = 0.10;
         this.current_time_constant = this.default_time_constant;
         this.paused = false;
         this.collision_guide_length = 5;
@@ -175,8 +175,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
         // game parameters
         this.arrow_speed = 1.5;
-        this.ball_speed = .20;
-        this.floor_damping = 0.00001375;
+        this.ball_speed = .15;
+        this.floor_damping = 0.0000025;
         this.cue_ball_damping = this.floor_damping;
         this.number_ball_damping = this.floor_damping;
         this.cue_ball_mass = 2;
@@ -214,6 +214,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             Mat4.identity()
                 .times(Mat4.rotation(3 * Math.PI / 2, Vec.of(0, 1, 0)));
         this.initial_number_ball_transforms = [];
+        this.number_ball_rotation_transforms = [];
         this.hole_transforms = [];
         this.lock_camera_on_ball = false;
         this.lock_camera_on_number_ball = false;
@@ -260,6 +261,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                     .times(Mat4.translation(Vec.of(x * ball_spacing, 0, z * ball_spacing)))
                     .times(this.base_number_ball_transform);
                 this.initial_number_ball_transforms[i] = number_ball_transform;
+                this.number_ball_rotation_transforms[i] = Mat4.identity();
                 this.number_ball_physics_objects[i] =
                     new PhysicsObject(
                         this.number_ball_damping,
@@ -519,7 +521,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         //     );
         // }
 
-
         this.wall_transform_north =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(0, -3, this.floor_height/2)))
@@ -586,12 +587,10 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             stick_material = this.materials.phong_opaque; // no not show stick within 1 second of launch
         }
 
-        var transform;
-        if (this.paused) {
-            transform = this.cue_ball_physics_object.transform;
-        }
-        else {
-            transform = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
+        var transform = this.cue_ball_physics_object.transform;
+        if (!this.paused) {
+            const new_transforms = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
+            transform = new_transforms[0];
         }
         this.shapes.stick.draw(
             graphics_state,
@@ -605,12 +604,10 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 
     draw_ball(graphics_state) {
-        var transform;
-        if (this.paused) {
-            transform = this.cue_ball_physics_object.transform;
-        }
-        else {
-            transform = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
+        var transform = this.cue_ball_physics_object.transform;
+        if (!this.paused) {
+            const new_transforms = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
+            transform = new_transforms[0];
         }
         this.cue_ball_transform =
             transform.times(this.initial_cue_ball_transform);
@@ -627,18 +624,38 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 let image_filename = this.determine_number_ball_texture(i);
                 let material =
                     this.materials.billiards_ball.override({texture: this.context.get_instance(image_filename, true)});
-                var transform;
-                if (this.paused) {
-                    transform = this.number_ball_physics_objects[i].transform;
+                var transform = this.number_ball_physics_objects[i].transform;
+                var rotation_axis_angle = this.number_ball_physics_objects[i].last_zx_fv_angle + Math.PI / 2;
+                if (!this.paused) {
+                    const new_transforms = this.number_ball_physics_objects[i].update_and_get_transform(graphics_state);
+                    this.number_ball_rotation_transforms[i] = new_transforms[1];
+                    transform = new_transforms[0];
+                    rotation_axis_angle = new_transforms[2];
                 }
-                else {
-                    transform = this.number_ball_physics_objects[i].update_and_get_transform(graphics_state);
-                }
+                const test_rotation_axis_angle = 287 * Math.PI / 180;
+                const test_rotation_axis_4 =
+                    Mat4.rotation(test_rotation_axis_angle, Vec.of(0, 0, -1))
+                        .times(Vec.of(0, 1, 0, 0));
+                const test_rotation_axis = Vec.of(test_rotation_axis_4[0], test_rotation_axis_4[1], test_rotation_axis_4[2]);
+                //console.log("test rotation axis: " + test_rotation_axis);
                 this.shapes.number_ball.draw(
                     graphics_state,
-                    transform.times(this.initial_number_ball_transforms[i]),
+                    transform
+                        .times(this.initial_number_ball_transforms[i])
+                        .times(this.number_ball_rotation_transforms[i]),
                     material
                 );
+                // const c = this.number_ball_physics_objects[i].get_center();
+                // this.shapes.collision_guide.draw(
+                //     graphics_state,
+                //     Mat4.identity()
+                //         .times(Mat4.translation(Vec.of(c[0], c[1], c[2])))
+                //         .times(Mat4.rotation(rotation_axis_angle, Vec.of(0, 1, 0)))
+                //         .times(this.initial_collision_guide_transform),
+                //     this.materials.collision_guide.override({
+                //         color: Color.of(0.8, 0.8, 0.8, 1)
+                //     })
+                // )
             }
 
         }
@@ -1044,6 +1061,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             if (!this.ball_launched) {
                 if (!this.paused) {
                     this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
+                    //this.arrow_angle = Math.PI - .05;
                     if (this.arrow_angle >= 2 * Math.PI) {
                         this.arrow_angle = 0;
                     }

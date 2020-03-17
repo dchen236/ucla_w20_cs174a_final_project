@@ -15,12 +15,15 @@ window.PhysicsObject = window.classes.PhysicsObject =
             this.object_tag = object_tag;
             this.gravity = false;
             this.current_gravity_force = 0;
+            this.current_rotation = Mat4.identity();
+            this.last_zx_fv_angle = 0;
         }
 
         reset() {
             this.transform = this.initial_transform;
             this.center = this.center_transform.times(Vec.of(0, 0, 0, 1));
             this.force_vector = Vec.of(0, 0, 0);
+            this.current_rotation = Mat4.identity();
             this.disable_gravity();
         }
 
@@ -65,8 +68,9 @@ window.PhysicsObject = window.classes.PhysicsObject =
         }
 
         update_and_get_transform(graphics_state) {
-            if (this.force_vector.equals(Vec.of(0, 0, 0)) && !this.gravity)
-                return this.transform;
+            if (this.force_vector[2] == 0.0 && !this.gravity) {
+                return [this.transform, this.current_rotation, this.last_zx_fv_angle + Math.PI / 2];
+            }
 
             this.force_vector[2] =
                 this.force_vector[2] -
@@ -90,7 +94,30 @@ window.PhysicsObject = window.classes.PhysicsObject =
                         )
                     );
             this.transform = this.transform.times(delta_translation);
-            return this.transform;
+            const distance = Math.sqrt(
+                (force_vector_x_y_z[0] * graphics_state.animation_delta_time * this.time_constant)**2 +
+                (force_vector_x_y_z[2] * graphics_state.animation_delta_time * this.time_constant)**2
+            );
+            // the balls seem to operate in a different coordinate system for whatever reason, for the balls
+            // y and z are switched so that the equivalent of Vec.of(0, 1, 0) in the physics coordinate system
+            // is Vec.of(0, 0, -1) in the balls coordinate system
+            const rotation_axis =
+                Mat4.rotation(this.force_vector[0] + Math.PI / 2, Vec.of(0, 0, -1))
+                    .times(Vec.of(0, 1, 0, 0));
+            if (!rotation_axis.equals(Vec.of(0, 0, 0, 0))) {
+                this.last_zx_fv_angle = this.force_vector[0];
+                this.current_rotation =
+                    this.current_rotation.times(
+                        Mat4.rotation(distance / this.radius, rotation_axis)
+                    );
+                console.log(
+                    this.object_tag + ": " + "\n" +
+                    "rotation axis: " + rotation_axis + "\n" +
+                    "current rotation angle: " + distance / this.radius
+                );
+            }
+
+            return [this.transform, this.current_rotation, this.last_zx_fv_angle + Math.PI / 2];
         }
 
         static calculate_x_y_z(offset_angles_and_magnitude_force_vector) {
