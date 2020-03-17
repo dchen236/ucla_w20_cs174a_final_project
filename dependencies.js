@@ -885,7 +885,7 @@ window.Shadow_Shader = window.classes.Shadow_Shader =
       // of the old color into the result.  Finally, an image is displayed onscreen.
     { material( color, properties )     // Define an internal class "Material" that stores the standard settings found in Phong lighting.
     { return new class Material       // Possible properties: ambient, diffusivity, specularity, smoothness, gouraud, texture.
-    { constructor( shader, color = Color.of( 0,0,0,1 ), ambient = 0, diffusivity = 1, specularity = 1, smoothness = 40 )
+    { constructor( shader, color = Color.of( 0,0,0,1 ), ambient = 0, diffusivity = 1, specularity = 1, smoothness = 50 )
     { Object.assign( this, { shader, color, ambient, diffusivity, specularity, smoothness } );  // Assign defaults.
       Object.assign( this, properties );                                                        // Optionally override defaults.
     }

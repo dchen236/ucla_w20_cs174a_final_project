@@ -26,7 +26,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.texture = new Texture ( context.gl, "", false, false );        // Initial image source: Blank gif file
         this.texture.image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-        this.floor_offset = 3;
+        this.floor_offset = 2;
         this.floor_thickness = .05;
         this.hole_radius = 3;
         const shapes = {
@@ -86,6 +86,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             shadow_light: context.get_instance(Shadow_Shader).material( Color.of(0, 75/255, 0, 1 ), {
                 ambient: 1,
                 texture: this.texture,
+                diffusivity: 1,
+                specularity: 0.5
             } ),
             shadow_dark: context.get_instance(Shadow_Shader).material( Color.of(0, 40/255, 0, 1 ), {
                 ambient: 1,
@@ -149,9 +151,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.casino_music = new Audio("assets/casino_music.mp3");
         this.music_playing = false;
 
-        this.lights = [ new Light( Vec.of( 0,100,0,1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
-        this.floor_width = 80;
-        this.floor_height = 80;
+        this.lights = [ new Light( Vec.of( 0, 0, 0, 1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
+        this.floor_width = 100;
+        this.floor_height = 89;
         this.floor_transform =
             Mat4.identity()
                 .times(Mat4.translation(Vec.of(0, -this.floor_offset, 0)))
@@ -357,7 +359,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.lock_camera_on_ball = false;
                 this.lock_camera_behind_ball = false;
                 if (this.lock_camera_on_number_ball) {
-                    if (this.number_ball_camera_index >= this.num_number_balls) {
+                    if (this.number_ball_camera_index > this.num_number_balls) {
                         this.number_ball_camera_index = 0;
                     }
                     else {
@@ -468,7 +470,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
     draw_static_scene(graphics_state) {
         let raised_floor = this.floor_transform.times(Mat4.translation([0,0,0]));
-        raised_floor = raised_floor.times(Mat4.scale([2,0.01,1.1]));
+        raised_floor = raised_floor.times(Mat4.scale([-1.7,2,1]));
 
         this.draw_holes(graphics_state);
 
@@ -705,13 +707,13 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             return `assets/ball_3.jpg`;
         }
         else if(i === 6){
-            return `assets/ball_2.jpg`;
+            return `assets/ball_13.jpg`;
         }
         else if(i === 7){
             return `assets/ball_6.jpg`;
         }
         else if(i === 8){
-            return `assets/ball_8.jpg`;
+            return `assets/ball_12.jpg`;
         }
         else if(i === 9){
             return `assets/ball_7.jpg`;
@@ -1021,20 +1023,23 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.reset_scene(graphics_state);
                 this.reset = false;
             }
-            this.update_camera_transform(graphics_state);
+            //this.update_camera_transform(graphics_state);
+
+            // Save camera angle before shadows in order to calculate them appropraiately using top-down and then revert
+            const previous_camera = this.context.globals.graphics_state.camera_transform;
+            this.context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-80,0 ), Vec.of( 0,1,0 ) )
+                .times(Mat4.translation(Vec.of(0, -110, -2)));
 
             this.draw_ball(graphics_state);
             this.draw_number_balls(graphics_state);
 
-            // Save camera angle before shadows in order to calculate them appropraiately using top-down and then revert
-            const previous_camera = graphics_state.camera_transform;
-            graphics_state.camera_transform = this.static_camera_positions[1];
+            this.context.globals.graphics_state.camera_transform = previous_camera;
 
             this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
             this.texture.image.src = this.scratchpad.toDataURL("image/png");
             this.webgl_manager.gl.clear( this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
 
-            graphics_state.camera_transform = previous_camera;
+
 
             this.draw_ball(graphics_state);
             this.draw_number_balls(graphics_state);
@@ -1061,7 +1066,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.draw_collision_results(graphics_state);
             }
 
-            //this.update_camera_transform(graphics_state);
+            this.update_camera_transform(graphics_state);
 
 
         }
