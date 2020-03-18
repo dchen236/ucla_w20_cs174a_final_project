@@ -153,6 +153,18 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 diffusivity: 0,
                 specularity: 0,
                 texture: context.get_instance("assets/loading_screen.jpg", false)
+            }),
+            win_material: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {
+                ambient: 1,
+                diffusivity: 0,
+                specularity: 0,
+                texture: context.get_instance("assets/win.jpg", false)
+            }),
+            lose_material: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {
+                ambient: 1,
+                diffusivity: 0,
+                specularity: 0,
+                texture: context.get_instance("assets/lose.jpg", false)
             })
         };
         this.draw_table = true;
@@ -360,8 +372,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             }
         );
         this.new_line();
-        this.key_triggered_button("Reset Game", ["l"], () =>
-            this.reset = true
+        this.key_triggered_button("Reset Game", ["l"], () => {
+                this.reset = true;
+                this.game_started = true;
+                this.game_over = false;
+                this.won = false;
+            }
         );
         this.new_line();
         this.key_triggered_button("Toggle collision markers", ["t"], () =>
@@ -1136,18 +1152,31 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
     display( graphics_state )
     {
-
-        if (this.game_over) {
-            console.log("Game over, won? : " + this.won);
-            return;
-        }
-
-        this.check_game_over();
-
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
 
+        // Check if the user won or lost here
+        this.check_game_over();
+        if(this.game_over && this.won){
+            graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
+            this.shapes.sign.draw(graphics_state,
+                Mat4.identity().times(Mat4.identity()
+                    .times(Mat4.scale([50, 40, 40]))
+                    .times(Mat4.rotation(-Math.PI / 2, Vec.of(1, 0, 0)))
+                    .times(Mat4.translation([0, 0, 0]))),
+                this.materials.win_material);
+        }
+        else if(this.game_over && !this.won){
+            graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
+            this.shapes.sign.draw(graphics_state,
+                Mat4.identity().times(Mat4.identity()
+                    .times(Mat4.scale([50, 40, 40]))
+                    .times(Mat4.rotation(-Math.PI / 2, Vec.of(1, 0, 0)))
+                    .times(Mat4.translation([0, 0, 0]))),
+                this.materials.lose_material);
+        }
+
+        // Check if the game hasn't started
         if(!this.game_started) {
-            // this.shapes.sign.draw(graphics_state, Mat4.identity(), this.materials.sign_material);
             graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
             this.shapes.sign.draw(graphics_state,
                 Mat4.identity().times(Mat4.identity()
@@ -1157,26 +1186,24 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.materials.sign_material);
         }
         else {
-
             if (this.slow_motion_toggle) {
                 this.toggle_slow_motion();
             }
-
             if (this.auto_pause_on_collision_toggle) {
                 this.toggle_auto_pause_on_collision();
             }
-
+            if(this.reset){
+                this.game_over = false;
+            }
             const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-
             if (!this.game_over) {
-
                 if (this.reset) {
+                    console.log('reset');
                     this.reset_scene(graphics_state);
                     this.reset = false;
                 }
-                //this.update_camera_transform(graphics_state);
 
-                // Save camera angle before shadows in order to calculate them appropraiately using top-down and then revert
+                // Save camera angle before shadows in order to calculate them appropriately using top-down and then revert
                 const previous_camera = this.context.globals.graphics_state.camera_transform;
                 this.context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 0, 5), Vec.of(0, -80, 0), Vec.of(0, 1, 0))
                     .times(Mat4.translation(Vec.of(0, -110, -2)));
