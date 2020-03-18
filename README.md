@@ -139,4 +139,5 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 ## References and Resources
 * Pool ball textures: [https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html](https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html)
 * Wynn casino panorama: [https://www.flickr.com/photos/mattslocum/4401059901](https://www.flickr.com/photos/mattslocum/4401059901)
-
+* Cue stick .obj file: https://free3d.com/3d-model/billiards-cuebasic-v1--740465.html 
+* Billiards background image for intro/won/lost screens: https://unsplash.com/photos/DUcVepObkXk 
