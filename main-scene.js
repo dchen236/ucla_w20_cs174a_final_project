@@ -47,6 +47,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             bounding_cube: new Cube(),
             skybox: new Square_Map(50), //marker
             hole: new Hole(this.hole_radius, this.floor_offset - this.floor_thickness, 15, 15),
+            sign: new Cube()
         };
         this.submit_shapes( context, shapes );
         this.materials = {
@@ -146,6 +147,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 ambient: 1,
                 diffuse: 0,
                 specularity: 0
+            }),
+            sign_material: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {
+                ambient: 1,
+                diffusivity: 0,
+                specularity: 0,
+                texture: context.get_instance("assets/loading_screen.jpg", false)
             })
         };
         this.draw_table = true;
@@ -180,6 +187,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.game_over = false;
 
         // game parameters
+        this.game_started = false;
         this.arrow_speed = 1.5;
         this.max_ball_speed = .15;
         this.min_ball_speed = 0;
@@ -228,6 +236,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             Mat4.identity()
                 .times(Mat4.scale(Vec.of(0.5, 0.1, 1)))
                 .times(Mat4.translation(Vec.of(0, 4 * this.cue_ball_radius, 0)));
+        this.sign_transform = Mat4.identity().times(Mat4.translation(Vec.of(0, 0, -500)));
+
         this.initial_number_ball_transforms = [];
         this.number_ball_rotation_transforms = [];
         this.hole_transforms = [];
@@ -260,7 +270,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // initializations
         this.initialize_triangle_number_balls();
         this.initialize_holes();
-
     }
 
     initialize_triangle_number_balls() {
@@ -300,6 +309,10 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
     make_control_panel()
     {
+        this.key_triggered_button("Start Game", ["1"], () => {
+            this.game_started = true;
+        });
+        this.new_line();
         this.key_triggered_button("Launch Ball", ["k"], () => {
             if(!this.music_playing){
                 this.casino_music.play();
@@ -375,12 +388,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.key_triggered_button("Pause", ["p"], () =>
             this.paused = !this.paused
         );
+        // this.new_line();
+        // this.key_triggered_button("Toggle auto-pause on collision", ["b"], () =>
+        //     this.auto_pause_on_collision_toggle = true
+        // );
         this.new_line();
-        this.key_triggered_button("Toggle auto-pause on collision", ["["], () =>
-            this.auto_pause_on_collision_toggle = true
-        );
-        this.new_line();
-        this.key_triggered_button("Focus camera on number_ball", ["]"], () => {
+        this.key_triggered_button("Focus camera on number_ball", ["e"], () => {
                 this.lock_camera_on_ball = false;
                 this.lock_camera_behind_ball = false;
                 if (this.lock_camera_on_number_ball) {
@@ -1143,84 +1156,93 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     {
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
 
-        if (this.slow_motion_toggle) {
-            this.toggle_slow_motion();
-        }
-
-        if (this.auto_pause_on_collision_toggle) {
-            this.toggle_auto_pause_on_collision();
-        }
-
-        const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-
-        // if (this.launch_left == 0 && !this.game_over) {
-        //     this.game_over = true;
-        //     this.last_launch_time = t;
-        // }
-
-        // if (this.launch_left > 0 || t < this.last_launch_time + 1) {
-        if (! this.game_over) {
-
-            if (this.reset) {
-                this.reset_scene(graphics_state);
-                this.reset = false;
-            }
-            //this.update_camera_transform(graphics_state);
-
-            // Save camera angle before shadows in order to calculate them appropraiately using top-down and then revert
-            const previous_camera = this.context.globals.graphics_state.camera_transform;
-            this.context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,-80,0 ), Vec.of( 0,1,0 ) )
-                .times(Mat4.translation(Vec.of(0, -110, -2)));
-
-            this.draw_ball(graphics_state);
-            this.draw_number_balls(graphics_state);
-
-            this.context.globals.graphics_state.camera_transform = previous_camera;
-
-            this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
-            this.texture.image.src = this.scratchpad.toDataURL("image/png");
-            this.webgl_manager.gl.clear( this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
-
-
-
-            this.draw_ball(graphics_state);
-            this.draw_number_balls(graphics_state);
-            this.draw_static_scene(graphics_state);
-
-
-            if (!this.ball_launched) {
-                this.draw_stick(graphics_state, this.arrow_angle);
-            }
-
-            if (!this.paused) {
-                this.handle_ball_collisions();
-                this.handle_wall_collisions();
-                this.handle_hole_collisions();
-            }
-
-            if (this.enable_collision_markers) {
-                this.draw_collision_results(graphics_state);
-            }
-
-            this.update_camera_transform(graphics_state);
-
-
+        if(!this.game_started) {
+            // this.shapes.sign.draw(graphics_state, Mat4.identity(), this.materials.sign_material);
+            graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
+            this.shapes.sign.draw(graphics_state,
+                Mat4.identity().times(Mat4.identity()
+                    .times(Mat4.scale([50, 40, 40]))
+                    .times(Mat4.rotation(-Math.PI / 2, Vec.of(1, 0, 0)))
+                    .times(Mat4.translation([0, 0, 0]))),
+                this.materials.sign_material);
         }
         else {
 
-            graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
-            this.shapes.score_text.set_string("  Your Score is " + this.score);
-            this.shapes.score_text.draw(graphics_state,
-                Mat4.identity().times(Mat4.identity()
-                    .times(Mat4.scale([3, 3 ,3]))
-                    .times(Mat4.rotation(- Math.PI  / 2 , Vec.of(1,0,0)))
-                    .times(Mat4.rotation(Math.PI  / 10 * Math.sin(t), Vec.of(0,0,1)))
-                    // .times(Mat4.rotation(-Math.PI * Math.sin(t ), Vec.of(1,0,1)))
-                    .times(Mat4.translation([-15,0,0]))),
-                this.materials.text);
+            if (this.slow_motion_toggle) {
+                this.toggle_slow_motion();
+            }
+
+            if (this.auto_pause_on_collision_toggle) {
+                this.toggle_auto_pause_on_collision();
+            }
+
+            const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
+
+            // if (this.launch_left == 0 && !this.game_over) {
+            //     this.game_over = true;
+            //     this.last_launch_time = t;
+            // }
+
+            // if (this.launch_left > 0 || t < this.last_launch_time + 1) {
+            if (!this.game_over) {
+
+                if (this.reset) {
+                    this.reset_scene(graphics_state);
+                    this.reset = false;
+                }
+                //this.update_camera_transform(graphics_state);
+
+                // Save camera angle before shadows in order to calculate them appropraiately using top-down and then revert
+                const previous_camera = this.context.globals.graphics_state.camera_transform;
+                this.context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 0, 5), Vec.of(0, -80, 0), Vec.of(0, 1, 0))
+                    .times(Mat4.translation(Vec.of(0, -110, -2)));
+
+                this.draw_ball(graphics_state);
+                this.draw_number_balls(graphics_state);
+
+                this.context.globals.graphics_state.camera_transform = previous_camera;
+
+                this.scratchpad_context.drawImage(this.webgl_manager.canvas, 0, 0, 256, 256);
+                this.texture.image.src = this.scratchpad.toDataURL("image/png");
+                this.webgl_manager.gl.clear(this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
+
+
+                this.draw_ball(graphics_state);
+                this.draw_number_balls(graphics_state);
+                this.draw_static_scene(graphics_state);
+
+
+                if (!this.ball_launched) {
+                    this.draw_stick(graphics_state, this.arrow_angle);
+                }
+
+                if (!this.paused) {
+                    this.handle_ball_collisions();
+                    this.handle_wall_collisions();
+                    this.handle_hole_collisions();
+                }
+
+                if (this.enable_collision_markers) {
+                    this.draw_collision_results(graphics_state);
+                }
+
+                this.update_camera_transform(graphics_state);
+
+
+            } else {
+
+                graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
+                this.shapes.score_text.set_string("  Your Score is " + this.score);
+                this.shapes.score_text.draw(graphics_state,
+                    Mat4.identity().times(Mat4.identity()
+                        .times(Mat4.scale([3, 3, 3]))
+                        .times(Mat4.rotation(-Math.PI / 2, Vec.of(1, 0, 0)))
+                        .times(Mat4.rotation(Math.PI / 10 * Math.sin(t), Vec.of(0, 0, 1)))
+                        // .times(Mat4.rotation(-Math.PI * Math.sin(t ), Vec.of(1,0,1)))
+                        .times(Mat4.translation([-15, 0, 0]))),
+                    this.materials.text);
+            }
         }
-
-
     }
 }
 
