@@ -41,6 +41,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             number_ball: new Subdivision_Sphere(5),
             score_text: new Text_Line(100),
             collision_guide: new Cube(),
+            power_indicator: new Cube(),
             wall: new Cube(),
             // bounding cube is no longer used since we upgraded the skybox strategy
             bounding_cube: new Cube(),
@@ -140,6 +141,11 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             bounding_cube: context.get_instance( Phong_Shader ).material(Color.of(0, 0, 0, 1), {
                 ambient: 1,
                 texture: context.get_instance("assets/casino.jpg", true)
+            }),
+            power_indicator: context.get_instance( Phong_Shader ).material(Color.of(1, 1, 1, 1), {
+                ambient: 1,
+                diffuse: 0,
+                specularity: 0
             })
         };
         this.draw_table = true;
@@ -175,7 +181,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
         // game parameters
         this.arrow_speed = 1.5;
-        this.ball_speed = .15;
+        this.max_ball_speed = .15;
+        this.min_ball_speed = 0;
+        this.ball_speed = this.min_ball_speed;
         this.floor_damping = 0.0000025;
         this.cue_ball_damping = this.floor_damping;
         this.number_ball_damping = this.floor_damping;
@@ -214,7 +222,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
         this.base_stick_transform =
             Mat4.identity()
-                .times(Mat4.rotation(3 * Math.PI / 2, Vec.of(0, 1, 0)));
+                .times(Mat4.rotation(3 * Math.PI / 2, Vec.of(0, 1, 0)))
+                .times(Mat4.translation(Vec.of(0, this.cue_ball_radius, 0)));
+        this.base_power_indicator_transform =
+            Mat4.identity()
+                .times(Mat4.scale(Vec.of(0.5, 0.1, 1)))
+                .times(Mat4.translation(Vec.of(0, 4 * this.cue_ball_radius, 0)));
         this.initial_number_ball_transforms = [];
         this.number_ball_rotation_transforms = [];
         this.hole_transforms = [];
@@ -223,10 +236,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.lock_camera_behind_ball = false;
         this.number_ball_camera_index = 0;
         this.initial_camera_reset = false;
-        this.arrow_angle = 0;
+        this.arrow_angle = Math.PI;
         this.ball_launched = false;
         this.reset = false;
         this.dark_mode = false;
+        this.stick_adjustment_constant = 150;
+        this.arrow_launch_power_mode = false;
 
         // testing state
         this.collision_results = new Array();
@@ -279,6 +294,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 i++;
             }
         }
+
+        console.log("number of balls: " + this.num_number_balls);
     }
 
     make_control_panel()
@@ -289,20 +306,25 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.music_playing = true;
             }
 
-            if (!this.ball_launched && this.launch_left > 0) {
-                if (!this.free_play_mode) {
-                    this.launch_left -= 1;
+            if (this.arrow_launch_power_mode) {
+                this.arrow_launch_power_mode = false;
+                if (!this.ball_launched && this.launch_left > 0) {
+                    if (!this.free_play_mode) {
+                        this.launch_left -= 1;
+                    }
+                    // this.ball_launched = true;
+                    console.log("---");
+                    console.log("Ball launched at angle (Radians): " + this.arrow_angle);
+                    this.cue_ball_physics_object.apply_force(
+                        Vec.of(this.arrow_angle, 0, this.ball_speed)
+                    );
+                    this.collide_sound.play();
+                    console.log("---");
+                    this.user_just_launched_ball = true
                 }
-                // this.ball_launched = true;
-                console.log("---");
-                console.log("Ball launched at angle (Radians): " + this.arrow_angle);
-                this.cue_ball_physics_object.apply_force(
-                    Vec.of(this.arrow_angle, 0, this.ball_speed)
-                );
-                this.collide_sound.play();
-                console.log("---");
-                this.user_just_launched_ball = true
-
+            }
+            else {
+                this.arrow_launch_power_mode = true;
             }
         });
         this.new_line();
@@ -362,11 +384,15 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.lock_camera_on_ball = false;
                 this.lock_camera_behind_ball = false;
                 if (this.lock_camera_on_number_ball) {
-                    if (this.number_ball_camera_index > this.num_number_balls) {
+                    if (this.number_ball_camera_index >= this.num_number_balls - 1) {
                         this.number_ball_camera_index = 0;
                     }
                     else {
                         this.number_ball_camera_index++;
+                        console.log(
+                            "this.num_number_balls: " + this.num_number_balls + "\n" +
+                            "this.number_ball_camera_index: " + this.number_ball_camera_index
+                        );
                     }
                 }
                 else {
@@ -376,6 +402,18 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         );
         this.key_triggered_button("Toggle table", ["q"], () =>
             this.draw_table = !this.draw_table
+        );
+        this.new_line();
+        this.key_triggered_button("Move stick to left", ["c"], () => {
+                this.arrow_angle -= this.arrow_speed * Math.PI / this.stick_adjustment_constant;
+                this.arrow_angle = PhysicsObject.normalize_angle(this.arrow_angle);
+            }
+        );
+        this.new_line();
+        this.key_triggered_button("Move stick to right", ["v"], () => {
+                this.arrow_angle += this.arrow_speed * Math.PI / this.stick_adjustment_constant;
+                this.arrow_angle = PhysicsObject.normalize_angle(this.arrow_angle);
+            }
         );
         this.new_line();
     }
@@ -612,6 +650,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     draw_ball(graphics_state) {
         if (this.cue_ball_physics_object.get_center()[1] >= -2 * this.cue_ball_physics_object.radius) {
             var transform = this.cue_ball_physics_object.transform;
+            var ball_center = this.cue_ball_physics_object.get_center();
             if (!this.paused) {
                 const new_transforms = this.cue_ball_physics_object.update_and_get_transform(graphics_state);
                 transform = new_transforms[0];
@@ -623,6 +662,38 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.cue_ball_transform,
                 this.materials.cue_ball
             );
+            if (this.arrow_launch_power_mode) {
+                this.shapes.power_indicator.draw(
+                    graphics_state,
+                    this.cue_ball_transform
+                        .times(this.base_power_indicator_transform)
+                        .times(Mat4.translation(
+                            Vec.of(
+                                (ball_center[0] > 0 ? -1 : 1) * 2 * this.cue_ball_radius,
+                                0,
+                                (ball_center[2] > 0 ? -1 : 1) * this.cue_ball_radius
+                            ))
+                        ),
+                    this.materials.power_indicator
+                );
+                this.ball_speed = ((Math.sin(graphics_state.animation_time / 500) + 1) / 2) * (this.max_ball_speed - this.min_ball_speed);
+                this.shapes.power_indicator.draw(
+                    graphics_state,
+                    this.cue_ball_transform
+                        .times(this.base_power_indicator_transform)
+                        .times(Mat4.translation(
+                            Vec.of((ball_center[0] > 0 ? -1 : 1) * 2 * this.cue_ball_radius,
+                                0.1,
+                                (ball_center[2] > 0 ? -1 : 1) * this.cue_ball_radius +
+                                (1 - (this.ball_speed / (this.max_ball_speed - this.min_ball_speed)))
+                            )
+                        ))
+                        .times(Mat4.scale(Vec.of(1, 1, (Math.sin(graphics_state.animation_time / 500) + 1) / 2))),
+                    this.materials.power_indicator.override({
+                        color: Color.of(1, 0, 0, 1)
+                    })
+                );
+            }
         }
     }
 
@@ -1118,12 +1189,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
 
             if (!this.ball_launched) {
-                if (!this.paused) {
-                    this.arrow_angle += this.arrow_speed * Math.sin(this.arrow_speed * dt) * this.current_time_constant;
-                    if (this.arrow_angle >= 2 * Math.PI) {
-                        this.arrow_angle = 0;
-                    }
-                }
                 this.draw_stick(graphics_state, this.arrow_angle);
             }
 
