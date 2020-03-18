@@ -185,6 +185,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.score = 0;
         this.last_launch_time = 0;
         this.game_over = false;
+        this.won = false;
 
         // game parameters
         this.game_started = false;
@@ -201,7 +202,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.number_ball_radius = 2;
         this.num_number_balls = 0;
         this.collide_adjust = -this.number_ball_radius * 2;
-        this.launch_left = 5;
         this.arrow_speed = 2;
         this.number_ball_fell_into_hole = [];
         // game state
@@ -261,7 +261,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             [Color.of(1, 0, 0, 1), Color.of(0, 1, 0, 1), Color.of(0, 0, 1, 1)], // normal, collision, reflection colors for o1
             [Color.of(1, 1, 0, 1), Color.of(0, 1, 1, 1), Color.of(1, 0, 1, 1)] // normal, collision, reflection colors for o2
         ];
-        this.free_play_mode = true;
         this.slow_motion_toggle = true;
         this.slow_motion = true;
         this.auto_pause_on_collision_toggle = true;
@@ -321,11 +320,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
             if (this.arrow_launch_power_mode) {
                 this.arrow_launch_power_mode = false;
-                if (!this.ball_launched && this.launch_left > 0) {
-                    if (!this.free_play_mode) {
-                        this.launch_left -= 1;
-                    }
-                    // this.ball_launched = true;
+                if (!this.ball_launched) {
                     console.log("---");
                     console.log("Ball launched at angle (Radians): " + this.arrow_angle);
                     this.cue_ball_physics_object.apply_force(
@@ -1152,8 +1147,32 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.auto_pause_on_collision = !this.auto_pause_on_collision;
     }
 
+    check_game_over() {
+        if (this.cue_ball_physics_object.get_center()[1] < -10) {
+            this.game_over = true;
+            this.won = false;
+            return;
+        }
+
+        for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
+            if (this.number_ball_physics_objects[i].get_center()[1] > -3) {
+                return;
+            }
+        }
+        this.game_over = true;
+        this.won = true;
+    }
+
     display( graphics_state )
     {
+
+        if (this.game_over) {
+            console.log("Game over, won? : " + this.won);
+            return;
+        }
+
+        this.check_game_over();
+
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
 
         if(!this.game_started) {
@@ -1178,12 +1197,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
             const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
-            // if (this.launch_left == 0 && !this.game_over) {
-            //     this.game_over = true;
-            //     this.last_launch_time = t;
-            // }
-
-            // if (this.launch_left > 0 || t < this.last_launch_time + 1) {
             if (!this.game_over) {
 
                 if (this.reset) {
