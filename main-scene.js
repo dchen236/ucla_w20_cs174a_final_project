@@ -650,7 +650,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 .times(this.base_stick_transform)
                 .times(Mat4.rotation(arrow_angle, Vec.of(0, 1, 0)))
                 .times(Mat4.scale(Vec.of(6, 10, 30)))
-                .times(Mat4.translation(Vec.of(-1.4, 0, 0))),
+                .times(Mat4.translation(Vec.of(-1.4 - this.ball_speed * 3, 0, 0))),
             stick_material
         );
     }
@@ -671,36 +671,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.materials.cue_ball
             );
             if (this.arrow_launch_power_mode) {
-                this.shapes.power_indicator.draw(
-                    graphics_state,
-                    this.cue_ball_transform
-                        .times(this.base_power_indicator_transform)
-                        .times(Mat4.translation(
-                            Vec.of(
-                                (ball_center[0] > 0 ? -1 : 1) * 2 * this.cue_ball_radius,
-                                0,
-                                (ball_center[2] > 0 ? -1 : 1) * this.cue_ball_radius
-                            ))
-                        ),
-                    this.materials.power_indicator
-                );
                 this.ball_speed = ((Math.sin(graphics_state.animation_time / 500) + 1) / 2) * (this.max_ball_speed - this.min_ball_speed);
-                this.shapes.power_indicator.draw(
-                    graphics_state,
-                    this.cue_ball_transform
-                        .times(this.base_power_indicator_transform)
-                        .times(Mat4.translation(
-                            Vec.of((ball_center[0] > 0 ? -1 : 1) * 2 * this.cue_ball_radius,
-                                0.1,
-                                (ball_center[2] > 0 ? -1 : 1) * this.cue_ball_radius +
-                                (1 - (this.ball_speed / (this.max_ball_speed - this.min_ball_speed)))
-                            )
-                        ))
-                        .times(Mat4.scale(Vec.of(1, 1, (Math.sin(graphics_state.animation_time / 500) + 1) / 2))),
-                    this.materials.power_indicator.override({
-                        color: Color.of(1, 0, 0, 1)
-                    })
-                );
             }
         }
     }
