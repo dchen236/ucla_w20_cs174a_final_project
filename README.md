@@ -5,9 +5,9 @@
 Team Members: Tejas Bhat, Danni Chen, William Chern, Edward Lu
 
 ## Game Setup and Rules
-This is an implementation of 10-ball pool using tinygraphics. However, we put our own spin on the game in order to make it more entertaining and unique. The balls are set up exactly the same way as in standard 10-ball pool. However, the user cannot simply select the angle and power to shoot at. Instead, the power is set to high automatically and there is a spinning arrow that the user must use and time perfectly in order to get the angle that he or she wants. 
+This is an implementation of 10-ball pool using tinygraphics. The balls are set up exactly the same way as in standard 10-ball pool. The user selects the angle for the pool stick and a specific power. This game mimics a popular 'practice mode' in 10 ball pool, in which one player tries to 'run the rack,' or clear every ball on the table without scratching.
 
-The goal of the game is to get in as many of the ten balls in as possible without regard for the order that they are shot in. Each time the user gets a ball in, he or she is awarded 10 points. If the user gets the cue ball in, he or she loses 10 points. If the user's score ever goes negative, then the game is over. If the user scores all the balls in, then he or she wins!
+The goal of the game is to get in as many of the ten balls in as possible without regard for the order that they are shot in. If the user gets the cue ball in, he or she loses the game and the game can be reset. If the user pots all the number balls in correctly, then he or she wins! 
 
 ## Features
 
@@ -71,11 +71,21 @@ There were a lot of different textures that we had to map throughout this entire
 - Table Felt
 - Table Wood Finish
 
+## Shadows
+
+We implemented shadows using a two-pass rendering technique and a custom shadow shader. We first drew all the balls and calculated the shadow map using the ball's relative position with regard to the overhead lighting. Then, on the second pass, we drew the pool table's felt utilizing the shadow textures and overlaid the rest of the environment as well. Since graphic rendering times were too slow on our machines when utilizing the best shadow technique, we opted for lower resolution shadows.
+
+## Reflections
+
+We implemented reflections very similarly to shadows. Instead of using a shadow shader, however, we used a reflection shader. We created this reflection shader by utilizing the fragment code of a Phong Shader and combining that with the existing Shadow Shader code.
+ 
+We used a two-pass rendering technique here as well. We first drew all the balls and calculated the reflection map using the ball's relative position with regard to the overhead lighting. Then, on the second pass, we drew the pool table's glass utilizing the reflection textures and overlaid the rest of the environment as well. Since graphic rendering times were too slow on our machines when utilizing the best reflection technique, we opted for lower resolution reflections.
+
 ### Lighting
 
-In terms of lighting, we wanted to create several different types of experiences for the user. While the original light setting is set to more of a family pool table, the 'party mode' makes the pool table seem like it is in a club with overhead lighting on the balls. In this way, the environment is dynamic and can be changed to the user's wishes. 
+In terms of lighting, we wanted to create several different types of experiences for the user. While the original light setting is set to more of a family pool table with regular dark shadows, the 'party mode' makes the pool table seem like it is in a club with overhead lighting on the balls. In this way, the environment is dynamic and can be changed to the user's wishes. 
 
-We implemented the 'party mode' by dimming the texture objects and changing the location of the main light source. All the balls, utilizing the Phong Shader, are affected by this change.
+We implemented the 'party mode' by dimming the texture objects, changing the location of the main light source, and creating the simulation of a glass table using reflections. All the balls, utilizing the Phong Shader, are affected by this change.
 
 ## Group Member Responsibilities
 
@@ -83,11 +93,16 @@ We implemented the 'party mode' by dimming the texture objects and changing the 
 - Laid out graphical design for game by creating the pool table using various scaled shapes
 - Found appropriate textures and mapped the felt of the table and wood finish on the sides 
 - Created texture mapping for balls in traditional 10-ball pool formation 
-- Implemented rudimentary skybox by texture mapping a large bounding cube (was later improved to a Square_Map)
-- Added music to the game which complies with all browser regulations and starts only when the user has started playing
-- Upscaled/upgraded various textures in order to increase smoothness on all parts of the game
+- Implemented rudimentary skybox by texture mapping a large bounding cube (was later improved to a Square_Map by Danni)
+- Added casino music to the game which complies with all browser regulations and starts only when the user has started playing
+- Implemented a loading screen for the game to greet user with instructions
+- Implemented 'you win' and 'you lose' screens to tell user their status at end of game
+- Upscaled and changed various textures in order to increase smoothness on all parts of the game
 - Optimized game by tuning factors such as friction and shooting speed for ball to mimic realistic pool game 
-- Created and edited slide deck, voiceovers, and video for in-class final presentation
+- Implemented dark, realistic shadows for normal game by utilizing a Shadow_Shader and utilizing a two-pass rendering technique
+- Implemented reflections for party mode by creating a custom Reflection_Shader and utilizing a two-pass rendering technique
+- Increased speed of rendering by modifying shaders and loading technique to ensure no game lag
+- Created and edited slide deck, voiceovers, and video for in-class final presentation (new for each deadline)
 
 ### Danni Chen
 * Implemented collision detection feature 
