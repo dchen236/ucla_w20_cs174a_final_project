@@ -311,11 +311,11 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     {
         this.key_triggered_button("Start Game", ["1"], () => {
             this.game_started = true;
+            this.casino_music.play();
         });
         this.new_line();
         this.key_triggered_button("Launch Ball", ["k"], () => {
             if(!this.music_playing){
-                this.casino_music.play();
                 this.music_playing = true;
             }
 
