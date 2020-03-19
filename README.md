@@ -4,6 +4,10 @@
 
 Team Members: Tejas Bhat, Danni Chen, William Chern, Edward Lu
 
+## Here is a quick demo for playing and explaining the game (UPDATE THE NEW VIDEO AFTER RECORDING)
+[https://drive.google.com/open?id=16MbXTAngm7eMn44hqjHllA7-FqHh3Tf4]
+
+
 ## Game Setup and Rules
 This is an implementation of 10-ball pool using tinygraphics. The balls are set up exactly the same way as in standard 10-ball pool. The user selects the angle for the pool stick and a specific power. This game mimics a popular 'practice mode' in 10 ball pool, in which one player tries to 'run the rack,' or clear every ball on the table without scratching.
 
@@ -105,13 +109,29 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 - Created and edited slide deck, voiceovers, and video for in-class final presentation (new for each deadline)
 
 ### Danni Chen
-* Implemented collision detection feature 
+* Implemented collision detection feature
+	* implemented the collision logic ( distance between two objects less than sum of radii )
+	* provided collsion API allow object to object collision detection, (ball to ball, ball to hole and ball to wall )
 * Implemented the scoring system
     * Tracking locations and motion of balls (cue ball and colored-balls)
     * Increase user's scores when colored ball fell into holes
     * Display text line when game is over (cue-ball fell into one of the holes)
+* Implemented the game logic and ball falling into hole scene
+	* make balls disappear when they fell into holes
+	* game over when cue ball fell into the holes.
 * Added casino-skybox to the game (images provided by Tejas Bhat and William Chern)
+* Added chamber-skybox to the game, found the image.
+* Added stick to the game 
+	* adjusted the position, rotation angle of the stick to match the postion of the cue ball
+	* mapped texture to the stick object
+* Added move back and force motion to the stick, the closer the stick to the cue ball, the weaker force will be applied when user launch the cue ball and vice versa
+* Added collision audio
+	* selectively play the music when objects collides
 * Helped with the physics part by adding and tracking the center of objects for collision detection.
+* Wrote the skybox and collision detection section of the readme
+
+
+
 
 ### William Chern
 * Found textures for all pool balls, implemented image textures onto number balls
