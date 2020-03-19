@@ -1118,14 +1118,40 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    should_do_wall_collision(o) {
+        const o_center = o.get_center();
+        if (o_center[2] < this.hole_radius && o_center[2] > -this.hole_radius) {
+            return false;
+        }
+        const x_limit = -this.floor_width/2 + 7;
+        const z_limit = -this.floor_height/2 + 7;
+        if (o_center[0] < x_limit && o_center[2] < z_limit) {
+            return false;
+        }
+        if (o_center[0] < x_limit && o_center[2] > -z_limit) {
+            return false;
+        }
+        if (o_center[0] > -x_limit && o_center[2] < z_limit) {
+            return false;
+        }
+        if (o_center[0] > -x_limit && o_center[2] > -z_limit) {
+            return false;
+        }
+        return true;
+    }
+
     handle_wall_collisions() {
         // check if the main ball has collided with walls
-        this.do_wall_collision(this.cue_ball_physics_object);
+        if (this.should_do_wall_collision(this.cue_ball_physics_object)) {
+            this.do_wall_collision(this.cue_ball_physics_object);
+        }
 
         // check if any number_balls have collided with the walls
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
             if (!this.number_ball_physics_objects[i].force_vector.equals(Vec.of(0, 0, 0))) {
-                this.do_wall_collision(this.number_ball_physics_objects[i]);
+                if (this.should_do_wall_collision(this.number_ball_physics_objects[i])) {
+                    this.do_wall_collision(this.number_ball_physics_objects[i]);
+                }
             }
         }
     }
@@ -1206,7 +1232,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         const center = o.get_center();
         const radius = o.radius;
         // collision with left wall
-        if (center[0] - radius <= - this.floor_width / 2) {
+        if (center[0] - radius <= - this.floor_width / 2 + 4) {
             this.do_collision(
                 o,
                 new PhysicsObject(
@@ -1224,7 +1250,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             )
         }
         // collision with right wall
-        else if (center[0] + radius >= this.floor_width / 2) {
+        else if (center[0] + radius >= this.floor_width / 2 - 4) {
             this.do_collision(
                 o,
                 new PhysicsObject(
@@ -1242,7 +1268,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             )
         }
         // collision with bottom wall
-        else if (center[2] + radius >= this.floor_height / 2) {
+        else if (center[2] + radius >= this.floor_height / 2 - 3) {
             this.do_collision(
                 o,
                 new PhysicsObject(
@@ -1260,7 +1286,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             )
         }
         // collision with top wall
-        else if (center[2] - radius <= -this.floor_height/2) {
+        else if (center[2] - radius <= -this.floor_height/2 + 3) {
             this.do_collision(
                 o,
                 new PhysicsObject(
@@ -1283,20 +1309,20 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         const center = o.get_center();
         const radius = o.radius;
         // outside left wall bounds
-        if (center[0] - radius <= - this.floor_width / 2) {
-            o.transform[0][3] = - this.floor_width / 2 + radius - o.center[0];
+        if (center[0] - radius <= - this.floor_width / 2 + 4) {
+            o.transform[0][3] = - this.floor_width / 2 + 4 + radius - o.center[0];
         }
         // outside right wall bounds
-        if (center[0] + radius >= this.floor_width / 2) {
-            o.transform[0][3] = this.floor_width / 2 - radius - o.center[0] ;
+        if (center[0] + radius >= this.floor_width / 2 - 4) {
+            o.transform[0][3] = this.floor_width / 2 - 4 - radius - o.center[0] ;
         }
         // outside bottom wall bounds
-        if (center[2] + radius >= this.floor_height / 2) {
-            o.transform[2][3] = this.floor_height / 2 - radius - o.center[2];
+        if (center[2] + radius >= this.floor_height / 2 - 3) {
+            o.transform[2][3] = this.floor_height / 2 - 3 - radius - o.center[2];
         }
         // outside top wall bounds
-        if (center[2] - radius <= -this.floor_height/2) {
-            o.transform[2][3] = - this.floor_height / 2 + radius - o.center[2];
+        if (center[2] - radius <= -this.floor_height/2 + 3) {
+            o.transform[2][3] = - this.floor_height / 2 + 3 + radius - o.center[2];
         }
     }
 
