@@ -47,7 +47,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             bounding_cube: new Cube(),
             skybox: new Square_Map(50), //marker
             hole: new Hole(this.hole_radius, this.floor_offset - this.floor_thickness, 15, 15),
-            sign: new Cube()
+            sign: new Cube(),
+            hole_pocket_side: new Hole_Pocket_Side(3)
         };
         this.submit_shapes( context, shapes );
         this.materials = {
@@ -539,6 +540,13 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     draw_static_scene(graphics_state) {
         let raised_floor = this.floor_transform.times(Mat4.translation([0,0,0]));
         raised_floor = raised_floor.times(Mat4.scale([-1.7,2,1]));
+
+        this.shapes.hole_pocket_side.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(0, 0, 0))),
+            this.materials.wall
+        );
 
         this.draw_holes(graphics_state);
 
@@ -1152,6 +1160,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
     display( graphics_state )
     {
+
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
 
         // Check if the user won or lost here
@@ -1217,11 +1226,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 this.texture.image.src = this.scratchpad.toDataURL("image/png");
                 this.webgl_manager.gl.clear(this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
 
-
                 this.draw_ball(graphics_state);
                 this.draw_number_balls(graphics_state);
                 this.draw_static_scene(graphics_state);
-
 
                 if (!this.ball_launched) {
                     this.draw_stick(graphics_state, this.arrow_angle);
@@ -1285,3 +1292,71 @@ class Hole extends Shape {
 
     }
 };
+
+window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
+    class Hole_Pocket_Side extends Shape {
+        constructor(radius, texture_range) {
+            super( "positions", "normals", "texture_coords" );
+
+            const height = 6;
+
+            Surface_Of_Revolution.insert_transformed_copy_into(
+                this,
+                [
+                    5,
+                    15,
+                    Vec.cast(
+                        [0, radius, 0], [0, radius, height],
+                        [0, radius+1, height], [0, radius+1, 0],
+                        [0, radius, 0]),
+                    texture_range,
+                    Math.PI
+                ],
+                Mat4.identity()
+                    .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))
+            );
+
+            Cube.insert_transformed_copy_into(
+                this,
+                [],
+                Mat4.identity()
+                    .times(Mat4.translation(Vec.of(-((radius) + 1), -1, 0)))
+                    .times(Mat4.scale(Vec.of(1, height, (radius + .75))))
+            );
+
+            Cube.insert_transformed_copy_into(
+                this,
+                [],
+                Mat4.identity()
+                    .times(Mat4.rotation(Math.PI / 2, Vec.of(0, 1, 0)))
+                    .times(Mat4.translation(Vec.of(radius+0.5, -1, -radius+0.5)))
+                    .times(Mat4.scale(Vec.of(0.5, height, radius - 0.5)))
+            );
+
+            Cube.insert_transformed_copy_into(
+                this,
+                [],
+                Mat4.identity()
+                    .times(Mat4.rotation(Math.PI / 2, Vec.of(0, 1, 0)))
+                    .times(Mat4.translation(Vec.of(-(radius+0.5), -1, -radius+0.5)))
+                    .times(Mat4.scale(Vec.of(0.5, height, radius - 0.5)))
+            );
+
+            Cube.insert_transformed_copy_into(
+                this,
+                [],
+                Mat4.identity()
+                    .times(Mat4.translation(Vec.of(-(radius - 0.4), -1, (radius - 0.4))))
+                    .times(Mat4.scale(Vec.of(0.5, height, 0.5)))
+            );
+
+            Cube.insert_transformed_copy_into(
+                this,
+                [],
+                Mat4.identity()
+                    .times(Mat4.translation(Vec.of(-(radius - 0.4), -1, -(radius - 0.4))))
+                    .times(Mat4.scale(Vec.of(0.5, height, 0.5)))
+            );
+
+        }
+    };
