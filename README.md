@@ -4,6 +4,10 @@
 
 Team Members: Tejas Bhat, Danni Chen, William Chern, Edward Lu
 
+## Here is a quick demo for playing and explaining the game (UPDATE THE NEW VIDEO AFTER RECORDING)
+[https://drive.google.com/open?id=16MbXTAngm7eMn44hqjHllA7-FqHh3Tf4]
+
+
 ## Game Setup and Rules
 This is an implementation of 10-ball pool using tinygraphics. The balls are set up exactly the same way as in standard 10-ball pool. The user selects the angle for the pool stick and a specific power. This game mimics a popular 'practice mode' in 10 ball pool, in which one player tries to 'run the rack,' or clear every ball on the table without scratching.
 
