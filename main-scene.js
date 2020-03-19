@@ -48,7 +48,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             skybox: new Square_Map(50), //marker
             hole: new Hole(this.hole_radius, this.floor_offset - this.floor_thickness, 15, 15),
             sign: new Cube(),
-            hole_pocket_side: new Hole_Pocket_Side(3)
+            hole_pocket_side: new Hole_Pocket_Side(3),
+            cube: new Cube()
         };
         this.submit_shapes( context, shapes );
         this.materials = {
@@ -509,6 +510,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // console.log("ball: " + this.cue_ball_physics_object.center);
 
     }
+
     draw_skybox(graphics_state,k,t,disable_front_wall){
         for( var i = 0; i < 3; i++ )
             for( var j = 0; j < 2; j++ )
@@ -544,7 +546,63 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.shapes.hole_pocket_side.draw(
             graphics_state,
             Mat4.identity()
-                .times(Mat4.translation(Vec.of(0, 0, 0))),
+                .times(Mat4.translation(Vec.of(-this.floor_width / 2 + 1.5 * this.hole_radius, -4, 0))),
+            this.materials.wall
+        );
+
+        this.shapes.hole_pocket_side.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-(-this.floor_width / 2 + 1.5 * this.hole_radius), -4, 0)))
+                .times(Mat4.rotation(Math.PI, Vec.of(0, 1, 0))),
+            this.materials.wall
+        );
+
+        this.shapes.hole_pocket_side.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(
+                    -(-this.floor_width / 2 + 1.5 * this.hole_radius),
+                    -4,
+                    (this.floor_height / 2 - 1.5 * this.hole_radius))
+                ))
+                .times(Mat4.rotation(Math.PI - Math.PI / 4, Vec.of(0, 1, 0))),
+            this.materials.wall
+        );
+
+        this.shapes.hole_pocket_side.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(
+                    -(-this.floor_width / 2 + 1.5 * this.hole_radius),
+                    -4,
+                    -(this.floor_height / 2 - 1.5 * this.hole_radius))
+                ))
+                .times(Mat4.rotation(Math.PI + Math.PI / 4, Vec.of(0, 1, 0))),
+            this.materials.wall
+        );
+
+        this.shapes.hole_pocket_side.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(
+                    (-this.floor_width / 2 + 1.5 * this.hole_radius),
+                    -4,
+                    -(this.floor_height / 2 - 1.5 * this.hole_radius))
+                ))
+                .times(Mat4.rotation(-Math.PI / 4, Vec.of(0, 1, 0))),
+            this.materials.wall
+        );
+
+        this.shapes.hole_pocket_side.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(
+                    (-this.floor_width / 2 + 1.5 * this.hole_radius),
+                    -4,
+                    (this.floor_height / 2 - 1.5 * this.hole_radius))
+                ))
+                .times(Mat4.rotation(Math.PI / 4, Vec.of(0, 1, 0))),
             this.materials.wall
         );
 
@@ -614,23 +672,103 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 .times(Mat4.translation(Vec.of(-1 * this.floor_width/2, -3, 0)))
                 .times(Mat4.scale(Vec.of(1, 5, this.floor_height/2 + 1)));
 
-        if (!this.dark_mode) {
-            this.shapes.wall.draw(
-                graphics_state,
-                this.wall_transform_north,
-                this.materials.wall
-            );
-        } else {
-            this.shapes.wall.draw(
-                graphics_state,
-                this.wall_transform_north,
-                this.materials.wall_dark
-            );
-        }
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_north,
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_north
+                .times(Mat4.scale(Vec.of(0.80, 1, 1)))
+                .times(Mat4.translation(Vec.of(0, 0, -2))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-this.floor_width/2 + 8.50, -3, -this.floor_height/2 + 1.70)))
+                .times(Mat4.rotation(-Math.PI / 18.5, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(1.80, 5, 1))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-(-this.floor_width/2 + 8.50), -3.01, -this.floor_height/2 + 1.70)))
+                .times(Mat4.rotation(Math.PI / 18.5, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(1.80, 5, 1))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-this.floor_width/2 + 8.50, -3, -(-this.floor_height/2 + 1.70))))
+                .times(Mat4.rotation(Math.PI / 18.5, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(1.80, 5, 1))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-(-this.floor_width/2 + 8.50), -3, -(-this.floor_height/2 + 1.70))))
+                .times(Mat4.rotation(-Math.PI / 18.5, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(1.80, 5, 1))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-this.floor_width/2 + 1.70, -3, -this.floor_height/2 + 9.20)))
+                .times(Mat4.rotation(Math.PI / 5.25, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(2, 5, 2))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-(-this.floor_width/2 + 1.70), -3, -this.floor_height/2 + 9.20)))
+                .times(Mat4.rotation(-Math.PI / 5.25, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(2, 5, 2))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-this.floor_width/2 + 1.70, -3, -(-this.floor_height/2 + 9.20))))
+                .times(Mat4.rotation(-Math.PI / 5.25, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(2, 5, 2))),
+            this.materials.wall
+        );
+
+        this.shapes.cube.draw(
+            graphics_state,
+            Mat4.identity()
+                .times(Mat4.translation(Vec.of(-(-this.floor_width/2 + 1.70), -3, -(-this.floor_height/2 + 9.20))))
+                .times(Mat4.rotation(Math.PI / 5.25, Vec.of(0, 1, 0)))
+                .times(Mat4.scale(Vec.of(2, 5, 2))),
+            this.materials.wall
+        );
 
         this.shapes.wall.draw(
             graphics_state,
             this.wall_transform_south,
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_south
+                .times(Mat4.scale(Vec.of(0.80, 1, 1)))
+                .times(Mat4.translation(Vec.of(0, 0, 2))),
             this.materials.wall
         );
 
@@ -642,9 +780,50 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
         this.shapes.wall.draw(
             graphics_state,
+            this.wall_transform_west
+                .times(Mat4.scale(Vec.of(2, 1, 0.34)))
+                .times(Mat4.translation(Vec.of(-1.25, 0, -1.25))),
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_west
+                .times(Mat4.scale(Vec.of(2, 1, 0.34)))
+                .times(Mat4.translation(Vec.of(-1.25, 0, 1.25))),
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
             this.wall_transform_east,
             this.materials.wall
         );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_east
+                .times(Mat4.scale(Vec.of(2, 1, 0.34)))
+                .times(Mat4.translation(Vec.of(1.25, 0, -1.25))),
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_east
+                .times(Mat4.scale(Vec.of(2, 1, 0.34)))
+                .times(Mat4.translation(Vec.of(1.25, 0, -1.25))),
+            this.materials.wall
+        );
+
+        this.shapes.wall.draw(
+            graphics_state,
+            this.wall_transform_east
+                .times(Mat4.scale(Vec.of(2, 1, 0.34)))
+                .times(Mat4.translation(Vec.of(1.25, 0, 1.25))),
+            this.materials.wall
+        );
+
         var disable_front_wall = false;
         if (this.current_static_camera_position == 0)
             disable_front_wall = true;
@@ -1314,6 +1493,7 @@ window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
                 ],
                 Mat4.identity()
                     .times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))
+                    .times(Mat4.translation(Vec.of(0, 0, -height)))
             );
 
             Cube.insert_transformed_copy_into(
@@ -1321,7 +1501,7 @@ window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
                 [],
                 Mat4.identity()
                     .times(Mat4.translation(Vec.of(-((radius) + 1), -1, 0)))
-                    .times(Mat4.scale(Vec.of(1, height, (radius + .75))))
+                    .times(Mat4.scale(Vec.of(1, height + 1, (radius + .75))))
             );
 
             Cube.insert_transformed_copy_into(
@@ -1330,7 +1510,7 @@ window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
                 Mat4.identity()
                     .times(Mat4.rotation(Math.PI / 2, Vec.of(0, 1, 0)))
                     .times(Mat4.translation(Vec.of(radius+0.5, -1, -radius+0.5)))
-                    .times(Mat4.scale(Vec.of(0.5, height, radius - 0.5)))
+                    .times(Mat4.scale(Vec.of(0.5, height + 1, radius - 0.5)))
             );
 
             Cube.insert_transformed_copy_into(
@@ -1339,7 +1519,7 @@ window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
                 Mat4.identity()
                     .times(Mat4.rotation(Math.PI / 2, Vec.of(0, 1, 0)))
                     .times(Mat4.translation(Vec.of(-(radius+0.5), -1, -radius+0.5)))
-                    .times(Mat4.scale(Vec.of(0.5, height, radius - 0.5)))
+                    .times(Mat4.scale(Vec.of(0.5, height + 1, radius - 0.5)))
             );
 
             Cube.insert_transformed_copy_into(
@@ -1347,7 +1527,7 @@ window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
                 [],
                 Mat4.identity()
                     .times(Mat4.translation(Vec.of(-(radius - 0.4), -1, (radius - 0.4))))
-                    .times(Mat4.scale(Vec.of(0.5, height, 0.5)))
+                    .times(Mat4.scale(Vec.of(0.5, height + 1, 0.5)))
             );
 
             Cube.insert_transformed_copy_into(
@@ -1355,7 +1535,7 @@ window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
                 [],
                 Mat4.identity()
                     .times(Mat4.translation(Vec.of(-(radius - 0.4), -1, -(radius - 0.4))))
-                    .times(Mat4.scale(Vec.of(0.5, height, 0.5)))
+                    .times(Mat4.scale(Vec.of(0.5, height + 1, 0.5)))
             );
 
         }
