@@ -52,7 +52,7 @@ This section of the readme will go over the physics implementation. The explanat
 	
 	Below is a sketch which may help in visualizing the difference between the two types of collisions further:
 	
-	![Glancing_collision_types](https://github.com/peurpdapeurp/ucla_w20_cs174a_final_project/blob/master/readme_images/glancing_collision_types.jpg)
+	![Glancing_collision_types](https://github.com/peurpdapeurp/ucla_w20_cs174a_final_project/blob/master/readme_images/glancing_collision_diagram.png)
 	
 5) Ball rolling - 
 	The ball rolling was implemented using the velocity vectors of the balls' physics objects to determine the distance that they travelled in a time step, and then using the balls' radii to calculate the proper angle to rotate the balls by. The general relationship used is that the ball's circumference is given by (2)(PI)(radius), and so the angle in radians, x, to rotate the ball if it travelled a distance d is given by the following equation:
