@@ -206,8 +206,11 @@ window.PhysicsObject = window.classes.PhysicsObject =
             }
 
             // calculate magnitude of final forces on objects
+            // const vf = PhysicsObject.calculate_elastic_collision_2d(
+            //     o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, o1_info[3], o2_info[3]
+            // );
             const vf = PhysicsObject.calculate_elastic_collision_2d(
-                o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, o1_info[3], o2_info[3]
+                o1, o2, o1_fv_x_y_z_init, o2_fv_x_y_z_init, normal, normal_perpendicular
             );
             o1.force_vector[2] = vf[0];
             o2.force_vector[2] = vf[1];
@@ -273,50 +276,59 @@ window.PhysicsObject = window.classes.PhysicsObject =
             ];
         }
 
-        static calculate_elastic_collision_2d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, o1_final_angle, o2_final_angle) {
+        // static calculate_elastic_collision_2d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, o1_final_angle, o2_final_angle) {
+        //
+        //     const o1_magnitude_init = o1.force_vector[2];
+        //     const o2_magnitude_init = o2.force_vector[2];
+        //     const magnitude_init = o1_magnitude_init + o2_magnitude_init;
+        //
+        //     console.log(
+        //         "elastic collision magnitude calculation inputs: " + "\n" +
+        //         "o1_fv: " + o1.force_vector + "\n" +
+        //         "o2_fv: " + o2.force_vector + "\n" +
+        //         "o1_fv_x_y_z: " + o1_fv_x_y_z + "\n" +
+        //         "o2_fv_x_y_z: " + o2_fv_x_y_z + "\n" +
+        //         "o1_final_angle: " + (o1_final_angle * 180 / Math.PI) + "\n" +
+        //         "o2_final_angle: " + (o2_final_angle * 180 / Math.PI) + "\n" +
+        //         "original total force magnitude: " + magnitude_init
+        //     );
+        //
+        //     const o1_x = o1_fv_x_y_z[0];
+        //     const o2_x = o2_fv_x_y_z[0];
+        //     const o1_z = o1_fv_x_y_z[2];
+        //     const o2_z = o2_fv_x_y_z[2];
+        //
+        //     const o2_final_u =
+        //         Math.abs(
+        //         (o1_z + o2_z - (1 / Math.tan(o1_final_angle)) * (o1_x + o2_x))
+        //         /
+        //         (Math.cos(o2_final_angle) + (1 / Math.tan(o1_final_angle)) * Math.sin(o2_final_angle))
+        //         );
+        //     const o1_final_u =
+        //         Math.abs(
+        //         (o1_x + o2_x - Math.sin(o2_final_angle) * o2_final_u)
+        //         /
+        //         (Math.sin(o1_final_angle))
+        //         );
+        //
+        //     // const o1_final = (o1_final_u / (o1_final_u + o2_final_u)) * (magnitude_init);
+        //     // const o2_final = (o2_final_u / (o1_final_u + o2_final_u)) * (magnitude_init);
+        //
+        //     console.log(
+        //         "elastic collision magnitude calculation results: " + "\n" +
+        //         "o2 final: " + o2_final_u + "\n" +
+        //         "o1 final: " + o1_final_u
+        //     );
+        //     return [o1_final_u, o2_final_u];
+        // }
+
+        static calculate_elastic_collision_2d(o1, o2, o1_fv_x_y_z, o2_fv_x_y_z, normal, normal_perpendicular) {
 
             const o1_magnitude_init = o1.force_vector[2];
             const o2_magnitude_init = o2.force_vector[2];
             const magnitude_init = o1_magnitude_init + o2_magnitude_init;
 
-            console.log(
-                "elastic collision magnitude calculation inputs: " + "\n" +
-                "o1_fv: " + o1.force_vector + "\n" +
-                "o2_fv: " + o2.force_vector + "\n" +
-                "o1_fv_x_y_z: " + o1_fv_x_y_z + "\n" +
-                "o2_fv_x_y_z: " + o2_fv_x_y_z + "\n" +
-                "o1_final_angle: " + (o1_final_angle * 180 / Math.PI) + "\n" +
-                "o2_final_angle: " + (o2_final_angle * 180 / Math.PI) + "\n" +
-                "original total force magnitude: " + magnitude_init
-            );
-
-            const o1_x = o1_fv_x_y_z[0];
-            const o2_x = o2_fv_x_y_z[0];
-            const o1_z = o1_fv_x_y_z[2];
-            const o2_z = o2_fv_x_y_z[2];
-
-            const o2_final_u =
-                Math.abs(
-                (o1_z + o2_z - (1 / Math.tan(o1_final_angle)) * (o1_x + o2_x))
-                /
-                (Math.cos(o2_final_angle) + (1 / Math.tan(o1_final_angle)) * Math.sin(o2_final_angle))
-                );
-            const o1_final_u =
-                Math.abs(
-                (o1_x + o2_x - Math.sin(o2_final_angle) * o2_final_u)
-                /
-                (Math.sin(o1_final_angle))
-                );
-
-            const o1_final = (o1_final_u / (o1_final_u + o2_final_u)) * (magnitude_init);
-            const o2_final = (o2_final_u / (o1_final_u + o2_final_u)) * (magnitude_init);
-
-            console.log(
-                "elastic collision magnitude calculation results: " + "\n" +
-                "o2 final: " + o2_final + "\n" +
-                "o1 final: " + o1_final
-            );
-            return [o1_final, o2_final];
+            return [magnitude_init/2, magnitude_init/2];
         }
 
         static calculate_vector_angle(v1, v2) {
