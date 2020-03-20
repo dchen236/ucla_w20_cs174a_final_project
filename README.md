@@ -119,11 +119,11 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 - Implemented 'you win' and 'you lose' screens to tell user their status at end of game
 - Upscaled and changed various textures in order to increase smoothness on all parts of the game
 - Optimized game by tuning factors such as friction and shooting speed for ball to mimic realistic pool game 
-- Implemented dark, realistic shadows for normal game by utilizing a Shadow_Shader and utilizing a two-pass rendering technique
-- Implemented reflections for party mode by creating a custom Reflection_Shader and utilizing a two-pass rendering technique
+- Integrated dark, realistic shadows for normal game by utilizing a Shadow_Shader and utilizing a two-pass rendering technique, modeling the table using felt properties
+- Integrated reflections for party mode by creating a custom Reflection_Shader and utilizing a two-pass rendering technique, modeling the table using glass properties
 - Increased speed of rendering by modifying shaders and loading technique to ensure no game lag
 - Created and edited slide deck, voiceovers, and video for in-class final presentation (new for each deadline)
-- Added through documentation to entire project after it was finished to help readers
+- Added thorough documentation to entire project after it was finished to help readers
 
 ### Danni Chen
 * Implemented collision detection feature
