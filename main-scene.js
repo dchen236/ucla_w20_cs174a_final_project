@@ -17,15 +17,17 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
 
-        // Set up shadow mapping
+        // Set up all the shadow mapping variables
+        let size_const = 256;
         this.webgl_manager = context;      // Save off the Webgl_Manager object that created the scene.
         this.scratchpad = document.createElement('canvas');
         this.scratchpad_context = this.scratchpad.getContext('2d');     // A hidden canvas for re-sizing the real canvas to be square.
-        this.scratchpad.width   = 256;
-        this.scratchpad.height  = 256;
+        this.scratchpad.width   = size_const;
+        this.scratchpad.height  = size_const;
         this.texture = new Texture ( context.gl, "", false, false );        // Initial image source: Blank gif file
         this.texture.image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
+        // Constants for graphics environment
         this.floor_offset = 2;
         this.floor_thickness = .05;
         this.hole_radius = 3;
@@ -55,15 +57,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.materials = {
             phong: context.get_instance( Phong_Shader ).material( Color.of( 222/ 255,184 / 255, 135 / 255,1 ), {ambient: 0.5, diffusivity: 1, specularity : 0,}),
             phong_opaque: context.get_instance( Phong_Shader ).material( Color.of( 222/ 255,184 / 255, 135 / 255,0 ), {ambient: 0.5, diffusivity: 1, specularity : 0,}),
-            // testing skybox
-            // 1: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
-            //     ambient: 1,
-            //     texture: context.get_instance( "assets/casino_left_right", false )
-            // } ),
-            // 2: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
-            //     ambient: 1,
-            //     texture: context.get_instance( "assets/casino_left_right", false )
-            // } ),
+
             3: context.get_instance(Phong_Shader).material( Color.of(0,0,0,1), {
                 ambient: 1,
                 texture: context.get_instance( "assets/wall_back_ground_256x256.jpg", false )
@@ -171,12 +165,14 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         };
         this.draw_table = true;
 
-        // audios associated with the project
+        // Audios associated with the project
         this.collide_sound = new Audio("assets/collide_sound.mp3");
         this.casino_music = new Audio("assets/casino_music.mp3");
         this.music_playing = false;
 
         this.lights = [ new Light( Vec.of( 0, 0, 0, 1 ), Color.of( 0,1,1,1 ), 1000000000 ) ];
+
+        // More constants and transformations for drawing certain objects
         this.floor_width = 100;
         this.floor_height = 89;
         this.floor_transform =
@@ -201,7 +197,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.game_over = false;
         this.won = false;
 
-        // game parameters
+        // All game parameters
         this.game_started = false;
         this.arrow_speed = 1.5;
         this.max_ball_speed = .15;
@@ -218,7 +214,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.collide_adjust = -this.number_ball_radius;
         this.arrow_speed = 2;
         this.number_ball_fell_into_hole = [];
-        // game state
+
+        // Record game state
         this.user_just_launched_ball = false;
         this.cue_ball_transform = Mat4.identity();
         this.cue_ball_hole_capture = undefined;
@@ -267,7 +264,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.stick_adjustment_constant = 150;
         this.arrow_launch_power_mode = false;
 
-        // testing state
+        // Testing State
         this.collision_results = new Array();
         this.max_collision_results_history_size = 10;
         this.enable_collision_markers = false;
@@ -280,11 +277,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.auto_pause_on_collision_toggle = true;
         this.auto_pause_on_collision = true;
 
-        // initializations
+        // Initializations
         this.initialize_triangle_number_balls();
         this.initialize_holes();
     }
 
+    // Initialize the balls in a triangle 10-ball formation
     initialize_triangle_number_balls() {
         let ball_spacing = 3.25;
         let x_initial = 0;
@@ -295,7 +293,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
         for (let z = z_initial; z > z_initial - triangle_height; z--) {
             for (let x = x_initial - (z_initial - z); x < x_initial + (1 + 2 * (z_initial - z))/2; x+=2) {
-                console.log("spawning number_ball at " + "[" + x + ", " + z + "]");
+                //console.log("spawning number_ball at " + "[" + x + ", " + z + "]");
                 let number_ball_transform = Mat4.identity()
                     .times(Mat4.translation(Vec.of(x * ball_spacing, 0, z * ball_spacing)))
                     .times(this.base_number_ball_transform);
@@ -320,6 +318,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         console.log("number of balls: " + this.num_number_balls);
     }
 
+    // Add all the various controls that are needed for the game's features
     make_control_panel()
     {
         this.key_triggered_button("Start Game", ["1"], () => {
@@ -401,10 +400,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.key_triggered_button("Pause", ["p"], () =>
             this.paused = !this.paused
         );
-        // this.new_line();
-        // this.key_triggered_button("Toggle auto-pause on collision", ["b"], () =>
-        //     this.auto_pause_on_collision_toggle = true
-        // );
+
         this.new_line();
         this.key_triggered_button("Focus camera on number_ball", ["e"], () => {
                 this.lock_camera_on_ball = false;
@@ -444,7 +440,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.new_line();
     }
 
-
+    // Update the camera based on what options the user has selected
     update_camera_transform(graphics_state) {
         var desired;
         const blending_factor = 0.1;
@@ -492,6 +488,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Reset the scene for when the user wins/losses or wants to reset normally
     reset_scene(graphics_state) {
         this.slow_motion_toggle = true;
         this.slow_motion = true;
@@ -502,15 +499,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.ball_launched = false;
         this.arrow_angle = Math.PI;
         graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
-        // for (let i = 0; i < this.num_number_balls; i++) {
-        //     this.number_ball_physics_objects[i].reset();
-        //     this.number_ball_rotation_transforms[i] = Mat4.identity();
-        //  //   console.log("number_ball " + i + " :" + this.number_ball_physics_objects[i].center);
-        // }
+
         this.initialize_triangle_number_balls();
         // console.log("ball: " + this.cue_ball_physics_object.center);
     }
 
+    // Draw the entire skybox surrounding the entire scene
     draw_skybox(graphics_state,k,t,disable_front_wall){
         for( var i = 0; i < 3; i++ )
             for( var j = 0; j < 2; j++ )
@@ -538,7 +532,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             }
     }
 
-
+    // Draw the static scene, which means anything that isn't dynamic in the scene (mainly table objects)
     draw_static_scene(graphics_state) {
         let raised_floor = this.floor_transform.times(Mat4.translation([0,0,0]));
         raised_floor = raised_floor.times(Mat4.scale([-1.7,2,1]));
@@ -623,37 +617,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                 );
             }
         }
-
-        // if (this.draw_table) {
-        //     if (!this.dark_mode) {
-        //         this.shapes.floor.draw(
-        //             graphics_state,
-        //             this.floor_transform,
-        //             this.materials.floor
-        //         );
-        //     } else {
-        //         this.shapes.floor.draw(
-        //             graphics_state,
-        //             this.floor_transform,
-        //             this.materials.floor_dark
-        //         );
-        //     }
-        // }
-
-        // if (!this.dark_mode) {
-        //     this.shapes.floor.draw(
-        //         graphics_state,
-        //         this.floor_transform,
-        //         this.materials.floor
-        //     );
-        //
-        // } else {
-        //     this.shapes.floor.draw(
-        //         graphics_state,
-        //         this.floor_transform,
-        //         this.materials.floor_dark
-        //     );
-        // }
 
         this.wall_transform_north =
             Mat4.identity()
@@ -830,6 +793,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.draw_skybox(graphics_state,0, 0, disable_front_wall);
     }
 
+    // Draw the stick at an appropriate position relative to the cue ball
     draw_stick(graphics_state, arrow_angle) {
         let stick_material = this.materials.phong;
         const t = graphics_state.animation_time / 1000
@@ -858,6 +822,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         );
     }
 
+    // Draw the cue ball appropriately
     draw_ball(graphics_state) {
         if (this.cue_ball_physics_object.get_center()[1] >= -2 * this.cue_ball_physics_object.radius) {
             var transform = this.cue_ball_physics_object.transform;
@@ -879,6 +844,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Draw every single number ball that is still on the table
     draw_number_balls(graphics_state) {
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
             if (!this.number_ball_fell_into_hole[i] &&
@@ -907,22 +873,11 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
                         .times(this.number_ball_rotation_transforms[i]),
                     material
                 );
-                // const c = this.number_ball_physics_objects[i].get_center();
-                // this.shapes.collision_guide.draw(
-                //     graphics_state,
-                //     Mat4.identity()
-                //         .times(Mat4.translation(Vec.of(c[0], c[1], c[2])))
-                //         .times(Mat4.rotation(rotation_axis_angle, Vec.of(0, 1, 0)))
-                //         .times(this.initial_collision_guide_transform),
-                //     this.materials.collision_guide.override({
-                //         color: Color.of(0.8, 0.8, 0.8, 1)
-                //     })
-                // )
             }
-
         }
     }
 
+    // Initialize all the 6 holes around the entire table
     initialize_holes() {
         for (let i = 0; i < 3; i++) {
             const wall_offset = 1;
@@ -954,6 +909,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Draw all 6 holes on the table
     draw_holes(graphics_state) {
         for (let i = 0; i < this.hole_transforms.length; i++) {
             this.shapes.hole.draw(
@@ -964,6 +920,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Map the ball textures based on the order that they are spawned
     determine_number_ball_texture(i) {
         if(i === 0){
             return `assets/ball_1.jpg`;
@@ -1000,6 +957,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Draw the results of physics collisions on the pool table
     draw_collision_results(graphics_state) {
         for (let i = 0; i < this.collision_results.length; i++) {
             for (let j = 0; j < 2; j++) {
@@ -1042,6 +1000,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
 
     }
 
+    // Distance function
     get_distance(p1, p2) {
         let xs = p1[0] - p2[0];
         //let ys = p1[1] - p2[1];
@@ -1049,23 +1008,12 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         return Math.sqrt(xs**2 + zs**2);
     }
 
+    // Collision checking function
     check_if_collide(o1, o2, hole_collide) {
         let o1_center = o1.get_center();
         let o2_center = o2.get_center();
         let distance = this.get_distance(o1_center, o2_center);
         let required_distance = (o1.radius + o2.radius + (hole_collide ? this.collide_adjust : 0));
-
-        // if (distance < 2 * required_distance) {
-        //     console.log(
-        //         "collision check for [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
-        //         o1.object_tag + " center: " + o1_center + "\n" +
-        //         o2.object_tag + " center: " + o2_center + "\n" +
-        //         o1.object_tag + " radius: " + o1.radius + "\n" +
-        //         o2.object_tag + " radius: " + o2.radius + "\n" +
-        //         "distance: " + distance + "\n" +
-        //         "required distance: " + required_distance
-        //     );
-        // }
 
         const found_collision =
             distance <= required_distance * (hole_collide ? 1.5 : 1) &&
@@ -1083,6 +1031,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         return found_collision;
     }
 
+    // Perform physics collision if necessary
     do_collision(o1, o2, wall_collision) {
         const collision_result = PhysicsObject.calculate_elastic_collision(o1, o2, !wall_collision);
         this.collision_results.push(collision_result);
@@ -1096,8 +1045,8 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Handle the ball collisions around the entire table
     handle_ball_collisions() {
-
         // check if ball collide 0th number_ball
         let score_multiplier = 1;
         for (let i = 0; i < this.number_ball_physics_objects.length; i++) {
@@ -1118,6 +1067,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Determine if a wall collision has occured
     should_do_wall_collision(o) {
         const o_center = o.get_center();
         if (o_center[2] < this.hole_radius && o_center[2] > -this.hole_radius) {
@@ -1140,6 +1090,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         return true;
     }
 
+    // Appropriately handle all wall collisions on the table
     handle_wall_collisions() {
         // check if the main ball has collided with walls
         if (this.should_do_wall_collision(this.cue_ball_physics_object)) {
@@ -1156,6 +1107,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Handle collisions with a hole appropriately since a ball has been potted
     handle_hole_collisions() {
 
         if (this.cue_ball_hole_capture != undefined) {
@@ -1200,6 +1152,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Auxiliary function to adjust center
     hole_adjust_center(ball, hole) {
         // assumes hole radius is larger than ball radius
         const ball_center = ball.get_center();
@@ -1227,6 +1180,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Perform collisions with the wall
     do_wall_collision(o) {
         this.wall_adjust_center(o);
         const center = o.get_center();
@@ -1305,6 +1259,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Helper function to adjust center of wall
     wall_adjust_center(o) {
         const center = o.get_center();
         const radius = o.radius;
@@ -1326,6 +1281,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Set variables and physics to toggle slow motion
     toggle_slow_motion() {
         this.slow_motion_toggle = false;
         if (this.slow_motion) {
@@ -1342,11 +1298,13 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         }
     }
 
+    // Toggle the auto pause on collisions feature
     toggle_auto_pause_on_collision() {
         this.auto_pause_on_collision_toggle = false;
         this.auto_pause_on_collision = !this.auto_pause_on_collision;
     }
 
+    // Verify if the game is over or not
     check_game_over() {
         if (this.cue_ball_physics_object.get_center()[1] < -10) {
             this.game_over = true;
@@ -1363,9 +1321,9 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.won = true;
     }
 
+    // Main display function that calls all helper functions to display the entire 10-ball pool game
     display( graphics_state )
     {
-
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
 
         // Check if the user won or lost here
@@ -1469,6 +1427,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
     }
 }
 
+// Hole object created using various shapes to mimic a hole on a pool table
 window.Hole = window.classes.Hole =
 class Hole extends Shape {
     constructor(radius, floor_offset, rows, columns, texture_range) {
@@ -1498,6 +1457,7 @@ class Hole extends Shape {
     }
 };
 
+// Hole pocket object created using a Surface of Revolution
 window.Hole_Pocket_Side = window.classes.Hole_Pocket_Side =
     class Hole_Pocket_Side extends Shape {
         constructor(radius, texture_range) {

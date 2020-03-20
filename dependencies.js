@@ -856,10 +856,10 @@ class Global_Info_Table extends Scene_Component                 // A class that 
     }
 }
 
-// Shadow Shader pulled from OpenGL Shadow Mapping Tutorial
+// Shadow Shader pulled from an OpenGL Shadow Mapping Tutorial online
 window.Shadow_Shader = window.classes.Shadow_Shader =
     class Shadow_Shader extends Shader         // THE DEFAULT SHADER: This uses the Phong Reflection Model, with optional Gouraud shading.
-                                               // Wikipedia has good defintions for these concepts.  Subclasses of class Shader each store
+                                               // Wikipedia has good definitions for these concepts.  Subclasses of class Shader each store
                                                // and manage a complete GPU program.  This particular one is a big "master shader" meant to
                                                // handle all sorts of lighting situations in a configurable way.
                                                // Phong Shading is the act of determining brightness of pixels via vector math.  It compares
@@ -974,41 +974,41 @@ window.Shadow_Shader = window.classes.Shadow_Shader =
             VERTEX_COLOR.xyz += phong_model_lights( N );
           }
           
-           vec3 from = vec3(1,0,60);
-           vec3 to = vec3(0,0,0);
-           vec3 forward = normalize(from - to);
-           vec3 right = vec3(0,1,0) * forward;
-           vec3 up = forward * right;
+         vec3 from = vec3(1,0,60);
+         vec3 to = vec3(0,0,0);
+         vec3 forward = normalize(from - to);
+         vec3 right = vec3(0,1,0) * forward;
+         vec3 up = forward * right;
 
-           mat4 camToWorld;
+         mat4 camToWorld;
 
-           camToWorld[0][0] = right.x; 
-           camToWorld[0][1] = right.y; 
-           camToWorld[0][2] = right.z; 
-           camToWorld[1][0] = up.x; 
-           camToWorld[1][1] = up.y; 
-           camToWorld[1][2] = up.z; 
-           camToWorld[2][0] = forward.x; 
-           camToWorld[2][1] = forward.y; 
-           camToWorld[2][2] = forward.z; 
+         camToWorld[0][0] = right.x; 
+         camToWorld[0][1] = right.y; 
+         camToWorld[0][2] = right.z; 
+         camToWorld[1][0] = up.x; 
+         camToWorld[1][1] = up.y; 
+         camToWorld[1][2] = up.z; 
+         camToWorld[2][0] = forward.x; 
+         camToWorld[2][1] = forward.y; 
+         camToWorld[2][2] = forward.z; 
 
-           camToWorld[3][0] = from.x; 
-           camToWorld[3][1] = from.y; 
-           camToWorld[3][2] = from.z;
+         camToWorld[3][0] = from.x; 
+         camToWorld[3][1] = from.y; 
+         camToWorld[3][2] = from.z;
 
-          float l = -20.;
-          float r = 20.;
-          float t = 20.;
-          float b = -20.;
-          float n = -10.;
-          float f = 20.;
-          mat4 depthProjectionMatrix = mat4(2./(r-l), 0., 0., 0., 0., 2./(t-b), 0., 0., 0., 0., -2./(f-n), 0., -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1.);
+        float l = -20.;
+        float r = 20.;
+        float t = 20.;
+        float b = -20.;
+        float n = -10.;
+        float f = 20.;
+        mat4 depthProjectionMatrix = mat4(2./(r-l), 0., 0., 0., 0., 2./(t-b), 0., 0., 0., 0., -2./(f-n), 0., -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1.);
 
-          mat4 depthMVP = depthProjectionMatrix * camToWorld * mat4(1.0);
-          mat4 biasMatrix = mat4(0.5, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0);
-          mat4 depthBiasMVP = biasMatrix * depthMVP;
-          v_PositionFromLight = biasMatrix * vec4(object_space_pos, 1.0);
-          v_Color = vec4( shapeColor.xyz * ambient, shapeColor.w);
+        mat4 depthMVP = depthProjectionMatrix * camToWorld * mat4(1.0);
+        mat4 biasMatrix = mat4(0.5, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0);
+        mat4 depthBiasMVP = biasMatrix * depthMVP;
+        v_PositionFromLight = biasMatrix * vec4(object_space_pos, 1.0);
+        v_Color = vec4( shapeColor.xyz * ambient, shapeColor.w);
         }`;
       }
       fragment_glsl_code()           // ********* FRAGMENT SHADER *********
@@ -1028,16 +1028,6 @@ window.Shadow_Shader = window.classes.Shadow_Shader =
             vec4 rgbaDepth = texture2D(texture, v_PositionFromLight.xy);
             float depth = rgbaDepth.r;
             float visibility = (shadowCoord.z > depth + 0.005) ? 0.7 : 1.0;
-
-//            if (rgbaDepth.xyz == vec3(0, 0, 0)) {
-//               gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
-//              gl_FragColor = vec4( 0, 0, 0, 1 ); 
-//             } else {
-//               gl_FragColor = vec4( 0, 0, 0, 1 ); 
-//             }
-//            gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);
-//           gl_FragColor = rgbaDepth;
-//           gl_FragColor = vec4( 1, 1, 1, 1 );
 
             vec4 tex_color = texture2D( texture, f_tex_coord );        // Sample the texture image in the correct place.
             if( USE_TEXTURE && tex_color.w < .01 ){
@@ -1109,7 +1099,7 @@ window.Shadow_Shader = window.classes.Shadow_Shader =
       }
     }
 
-// Reflection Shader created by combining the Shadow Shader and Phong Shader
+// Reflection Shader created by combining the Shadow Shader and Phong Shader. Most of the code except the fragment_glsl code was taken from online OpenGL tutorials.
 window.Reflection_Shader = window.classes.Reflection_Shader =
     class Reflection_Shader extends Shader         // THE DEFAULT SHADER: This uses the Phong Reflection Model, with optional Gouraud shading.
       // Wikipedia has good defintions for these concepts.  Subclasses of class Shader each store
@@ -1227,27 +1217,27 @@ window.Reflection_Shader = window.classes.Reflection_Shader =
             VERTEX_COLOR.xyz += phong_model_lights( N );
           }
           
-           vec3 from = vec3(1,0,60);
-           vec3 to = vec3(0,0,0);
-           vec3 forward = normalize(from - to);
-           vec3 right = vec3(0,1,0) * forward;
-           vec3 up = forward * right;
+         vec3 from = vec3(1,0,60);
+         vec3 to = vec3(0,0,0);
+         vec3 forward = normalize(from - to);
+         vec3 right = vec3(0,1,0) * forward;
+         vec3 up = forward * right;
 
-           mat4 camToWorld;
+         mat4 camToWorld;
 
-           camToWorld[0][0] = right.x; 
-           camToWorld[0][1] = right.y; 
-           camToWorld[0][2] = right.z; 
-           camToWorld[1][0] = up.x; 
-           camToWorld[1][1] = up.y; 
-           camToWorld[1][2] = up.z; 
-           camToWorld[2][0] = forward.x; 
-           camToWorld[2][1] = forward.y; 
-           camToWorld[2][2] = forward.z; 
+         camToWorld[0][0] = right.x; 
+         camToWorld[0][1] = right.y; 
+         camToWorld[0][2] = right.z; 
+         camToWorld[1][0] = up.x; 
+         camToWorld[1][1] = up.y; 
+         camToWorld[1][2] = up.z; 
+         camToWorld[2][0] = forward.x; 
+         camToWorld[2][1] = forward.y; 
+         camToWorld[2][2] = forward.z; 
 
-           camToWorld[3][0] = from.x; 
-           camToWorld[3][1] = from.y; 
-           camToWorld[3][2] = from.z;
+         camToWorld[3][0] = from.x; 
+         camToWorld[3][1] = from.y; 
+         camToWorld[3][2] = from.z;
 
           float l = -20.;
           float r = 20.;

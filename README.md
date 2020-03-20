@@ -107,6 +107,7 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 - Implemented reflections for party mode by creating a custom Reflection_Shader and utilizing a two-pass rendering technique
 - Increased speed of rendering by modifying shaders and loading technique to ensure no game lag
 - Created and edited slide deck, voiceovers, and video for in-class final presentation (new for each deadline)
+- Added through documentation to entire project after it was finished to help readers
 
 ### Danni Chen
 * Implemented collision detection feature
