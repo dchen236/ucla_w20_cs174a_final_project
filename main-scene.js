@@ -500,6 +500,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.cue_ball_physics_object.reset();
         this.cue_ball_hole_capture = undefined;
         this.ball_launched = false;
+        this.arrow_angle = Math.PI;
         graphics_state.camera_transform = this.static_camera_positions[this.current_static_camera_position];
         // for (let i = 0; i < this.num_number_balls; i++) {
         //     this.number_ball_physics_objects[i].reset();
@@ -508,7 +509,6 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         // }
         this.initialize_triangle_number_balls();
         // console.log("ball: " + this.cue_ball_physics_object.center);
-
     }
 
     draw_skybox(graphics_state,k,t,disable_front_wall){
