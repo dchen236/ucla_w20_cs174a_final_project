@@ -9,9 +9,9 @@ Team Members: Tejas Bhat, Danni Chen, William Chern, Edward Lu
 
 
 ## Game Setup and Rules
-This is an implementation of 10-ball pool using tinygraphics. The balls are set up exactly the same way as in standard 10-ball pool. The user selects the angle for the pool stick and a specific power. This game mimics a popular 'practice mode' in 10 ball pool, in which one player tries to 'run the rack,' or clear every ball on the table without scratching.
+This is an implementation of 10-ball pool using tinygraphics. The balls are set up exactly the same way as in standard 10-ball pool. The player selects the angle for the pool stick and a specific power. This game mimics a popular 'practice mode' in 10 ball pool, in which one player tries to 'run the rack,' or clear every ball on the table without scratching.
 
-The goal of the game is to get in as many of the ten balls in as possible without regard for the order that they are shot in. If the user gets the cue ball in, he or she loses the game and the game can be reset. If the user pots all the number balls in correctly, then he or she wins! 
+The goal of the game is to get in as many of the ten balls in as possible without regard for the order in which they are shot. The player loses the game if the cue ball is potted, and the game can be reset. The player wins if all the number balls are potted!
 
 ## Features
 
@@ -185,4 +185,5 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 * Wynn casino panorama: [https://www.flickr.com/photos/mattslocum/4401059901](https://www.flickr.com/photos/mattslocum/4401059901)
 * Cue stick .obj file: https://free3d.com/3d-model/billiards-cuebasic-v1--740465.html 
 * Billiards background image for intro/won/lost screens: https://unsplash.com/photos/DUcVepObkXk 
+* "Memoirs of Summer" casino music: https://www.youtube.com/watch?v=Sx_LA9OUdVE
 * Elastic Collisions Formula: https://www.softschools.com/formulas/physics/elastic_collision_formula/67/
