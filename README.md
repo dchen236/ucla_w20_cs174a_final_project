@@ -4,7 +4,7 @@
 
 Team Members: Tejas Bhat, Danni Chen, William Chern, Edward Lu
 
-## Here is a quick demo for playing and explaining the game (UPDATE THE NEW VIDEO AFTER RECORDING)
+##### Here is a quick demo of the game with some explanations:
 [https://drive.google.com/open?id=16MbXTAngm7eMn44hqjHllA7-FqHh3Tf4]
 
 
@@ -75,8 +75,7 @@ This section of the readme will go over the physics implementation. The explanat
 
 ### Collision Detection
 
-- Detecting the collision: 
- * Giving each object a center and radius, we detect two object collides with each other whenever the distance between the center of two objects is less than or equal to the sum of their radii
+ * In order to detect collisions, we gave each object a center and radius, and we detect two object that collide with each other whenever the distance between the center of two objects is less than or equal to the sum of their radii.
 
 ### Skybox
 
