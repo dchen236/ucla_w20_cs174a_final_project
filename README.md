@@ -5,7 +5,7 @@
 Team Members: Tejas Bhat, Danni Chen, William Chern, Edward Lu
 
 ##### Here is a quick demo of the game with some explanations:
-[https://drive.google.com/open?id=16MbXTAngm7eMn44hqjHllA7-FqHh3Tf4]
+https://drive.google.com/file/d/1x8KT6-S95jlETHOb52z_vEtexnOuv-KV/view?fbclid=IwAR1NG0bvyGM7cdQYA9BIbleyQUPiQ22s-2BtwCJ-6_L0ECmqoq_i-luWLDI
 
 
 ## Game Setup and Rules
