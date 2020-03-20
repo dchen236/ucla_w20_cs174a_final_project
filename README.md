@@ -162,7 +162,10 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 	* Creating the PhysicsObject API
     * Implementing basic collision calculation, glancing collision calculation
     * Added collision logic for balls against walls of table (inserted phantom balls at points of collision, to turn the wall collision into sphere collisions and keep the collision code simpler)
-	* Implemented drawing of collision markers
+    * Implemented ball rolling logic
+	* Implemented hole physics
+		* Ball falling through hole
+		* Hole "capturing" ball so that ball doesn't escape hole
 * Wrote physics section of readme
 * Implemented initial base framework in main-scene.js
 	* triangle ball spawning logic
@@ -170,11 +173,8 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 	* slow motion logic
 	* pause logic
 	* shift of camera to cue ball and other balls
-* Implemented ball rolling logic
-* Implemented hole physics
-	* Ball falling through hole
-	* Hole "capturing" ball so that ball doesn't escape hole
 * Created objects to add to side of table to "hug" holes to create a more realistic looking table
+* Implemented drawing of collision markers
 
 ## References and Resources
 * Pool ball textures: [https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html](https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html)
