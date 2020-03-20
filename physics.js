@@ -328,7 +328,23 @@ window.PhysicsObject = window.classes.PhysicsObject =
             const o2_magnitude_init = o2.force_vector[2];
             const magnitude_init = o1_magnitude_init + o2_magnitude_init;
 
-            return [magnitude_init/2, magnitude_init/2];
+            var o1_final;
+            var o2_final;
+
+            if (o1_magnitude_init > o2_magnitude_init) {
+                o2_final = .70 * magnitude_init;
+                o1_final = .30 * magnitude_init;
+            }
+            else if (o2_magnitude_init > o1_magnitude_init) {
+                o1_final = .70 * magnitude_init;
+                o2_final = .30 * magnitude_init;
+            }
+            else {
+                o1_final = .50 * magnitude_init;
+                o2_final = .50 * magnitude_init;
+            }
+
+            return [o1_final, o2_final];
         }
 
         static calculate_vector_angle(v1, v2) {

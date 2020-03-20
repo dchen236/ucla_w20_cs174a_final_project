@@ -215,7 +215,7 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
         this.cue_ball_radius = 2;
         this.number_ball_radius = 2;
         this.num_number_balls = 0;
-        this.collide_adjust = -this.number_ball_radius * 2;
+        this.collide_adjust = -this.number_ball_radius;
         this.arrow_speed = 2;
         this.number_ball_fell_into_hole = [];
         // game state
