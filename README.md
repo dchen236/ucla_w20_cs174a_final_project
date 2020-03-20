@@ -17,8 +17,7 @@ The goal of the game is to get in as many of the ten balls in as possible withou
 
 ### Physics Simulation
 
-
-This section of the readme will go over the physics implementation. The explanation for the physics implementation will be split into five parts: Part 1 will give a brief overview of the PhysicsObject API we made to represent a simple physics object, Part 2 will go into the two representations of a PhysicsObject's force vector used, Part 3 will go into basic collision calculations ignoring glancing collisions, Part 4 will go over glancing collision calculations, and Part 5 will go over general challenges in the Physics implementation.
+This section of the readme will go over the physics implementation. The explanation for the physics implementation will be split into five parts: Part 1 will give a brief overview of the PhysicsObject API we made to represent a simple physics object, Part 2 will go into the two representations of a PhysicsObject's force vector used, Part 3 will go into basic collision calculations ignoring glancing collisions, Part 4 will go over glancing collision calculations, part 5 will go over ball rolling, and Part 6 will go over general challenges in the Physics implementation.
 
 1) PhysicsObject API - 
 	We created a PhysicsObject API to encapsulate the complexity of representing a physics object. The PhysicsObject API is contained in physics.js. In this documentation, we will only briefly go over the constructor of the object; other calculations in the PhysicsObject API like glancing collisions are explained in later sections.
@@ -52,8 +51,16 @@ This section of the readme will go over the physics implementation. The explanat
 	Below is given a sketch which may help in visualizing the difference between the two types of collisions further:
 	
 	![Glancing_collision_types](https://github.com/peurpdapeurp/ucla_w20_cs174a_final_project/blob/master/readme_images/glancing_collision_types.jpg)
+
+
+5) Ball rollinng - 
+	The ball rolling was implemented using the velocity vectors of the balls' physics objects to determine the distance that they travelled in a time step, and then using the balls' radii to calculate the proper angle to rotate the balls by. The general relationship used is that the ball's circumference is given by (2)(PI)(radius), and so the angle in radians, x, to rotate the ball if it travelled a distance d is given by the following equation:
 	
-5) General challenges in the Physics implementation - 
+	x / (2(PI)) = d / (2(PI)(radius))
+	
+	The only other issue is deciding the axis to roll the ball on; we do this by simply checking the direction in which the ball is currently rolling using its velocity vector, and then taking the vector perpendicular to that in order to get the axis of rotation.
+
+6) General challenges in the Physics implementation - 
 	Although the physics implementation is relatively trivial (it all occurs within a 2d plane which simplifies things significantly), it was still fairly challenging to get the implementation working to the degree that it currently is, and it is still not perfect by any stretch. The main challenges were:
 	1) Ensuring that angular calculations were carried out correctly. Initially, many calculations were seemingly unpredictable and hard to work with; this was solved by doing more strict cleaning of inputs (i.e. ensuring input angles were always positive and in between 0 and 2pi radians).
 	2) A major challenge to get the physics to work correctly is the unpredictability of when physical calculations will be done in time; at many points of our simulation, physics calculations are done too late in time which leads to undesirable results (i.e., a ball to ball collision will be detected when the balls are already too far inside each other, which leads to unexpected behavior). We solved this through various fixes such as re-adjusting the positions of balls during collision to reasonable positions if they were too far inside each other, and forcing the centers of balls to be within the playing area during every update, and this leads to some undesirable visuals. For example, when balls bounce against the side of the walls, you can visually see a "snap" as they are moved into a more appropriate place, since their collision was detected when they were already too far within the wall. However, without this position readjustment fix, balls that collide will often curve into each other unrealistically. There are many improvements that could be made to make the physics look more realistic and perform better, but given our time constraints we believe the physics simulation we achieved was reasonable.
@@ -90,6 +97,14 @@ We used a two-pass rendering technique here as well. We first drew all the balls
 In terms of lighting, we wanted to create several different types of experiences for the user. While the original light setting is set to more of a family pool table with regular dark shadows, the 'party mode' makes the pool table seem like it is in a club with overhead lighting on the balls. In this way, the environment is dynamic and can be changed to the user's wishes. 
 
 We implemented the 'party mode' by dimming the texture objects, changing the location of the main light source, and creating the simulation of a glass table using reflections. All the balls, utilizing the Phong Shader, are affected by this change.
+
+### Hole Implementation
+
+In order to implement the holes, we implemented a limited amount of vertical physics, in that we added an option to enable gravity to the PhysicsObject API. For the holes, we simply detect when a ball is over a hole, and if it is, we enable gravity on the ball to make it look like it is falling into the hole.
+
+One of the problems we ran into while implementing this is that the balls would sometimes move too quickly while falling "into" the hole and look as if they were falling through the table. In order to fix this, we had to implement some hole "catching" logic, so that a ball didn't leave the bounds of a hole after it had been detected as falling into the hole. To do this, we added extra logic to the hole collision detection so that once a ball was "caught" by a hole, there would be the necessary logic to keep the ball from leaving the bounds of the hole. We did this by moving the ball back along its current direction of motion whenever it left the bounds of the hole it was captured by. 
+
+We also re-used our physics elastic collision in a different way here to give the illusion of the ball rolling around in the hole. We noticed before we had fixed the physics collision to avoid it that sometimes balls would curve into each other after a collision and spin around. We realized this happened whenever the physics collision calculation happened too late, when the balls that collided were already inside one another. We used this fact to create the illusion of the ball spinning around in the hole by having the balls that fall into holes collide with a fake ball placed on the hole, so that it looks like the ball is spinning around the hole. Even though this is a hack, it still gives a reasonable illusion of circular motion after a ball has entered a hole.
 
 ## Group Member Responsibilities
 
@@ -155,6 +170,11 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 	* slow motion logic
 	* pause logic
 	* shift of camera to cue ball and other balls
+* Implemented ball rolling logic
+* Implemented hole physics
+	* Ball falling through hole
+	* Hole "capturing" ball so that ball doesn't escape hole
+* Created objects to add to side of table to "hug" holes to create a more realistic looking table
 
 ## References and Resources
 * Pool ball textures: [https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html](https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html)
