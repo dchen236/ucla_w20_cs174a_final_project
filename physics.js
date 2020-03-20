@@ -42,11 +42,11 @@ window.PhysicsObject = window.classes.PhysicsObject =
             const new_force_vector_x_y_z = current_force_vector_x_y_z.plus(applied_force_vector_x_y_z);
             const new_force_vector = PhysicsObject.calculate_offset_angles_and_magnitude(new_force_vector_x_y_z);
 
-            console.log("force_vector[0]: " + force_vector[0] * 180 / Math.PI);
-            console.log("current_force_vector_x_y_z: " + current_force_vector_x_y_z);
-            console.log("applied_force_vector_x_y_z: " + applied_force_vector_x_y_z);
-            console.log("new_force_vector_x_y_z: " + new_force_vector_x_y_z);
-            console.log("new_force_vector[0]: " + (new_force_vector[0] * 180 / Math.PI));
+            // console.log("force_vector[0]: " + force_vector[0] * 180 / Math.PI);
+            // console.log("current_force_vector_x_y_z: " + current_force_vector_x_y_z);
+            // console.log("applied_force_vector_x_y_z: " + applied_force_vector_x_y_z);
+            // console.log("new_force_vector_x_y_z: " + new_force_vector_x_y_z);
+            // console.log("new_force_vector[0]: " + (new_force_vector[0] * 180 / Math.PI));
 
             this.force_vector = new_force_vector;
         }
@@ -108,14 +108,14 @@ window.PhysicsObject = window.classes.PhysicsObject =
             if (!rotation_axis.equals(Vec.of(0, 0, 0, 0))) {
                 this.last_zx_fv_angle = this.force_vector[0];
                 this.current_rotation =
-                    this.current_rotation.times(
-                        Mat4.rotation(distance / this.radius, rotation_axis)
+                    Mat4.rotation(distance / this.radius, rotation_axis).times(
+                        this.current_rotation
                     );
-                // console.log(
-                //     this.object_tag + ": " + "\n" +
-                //     "rotation axis: " + rotation_axis + "\n" +
-                //     "current rotation angle: " + distance / this.radius
-                // );
+                console.log(
+                    this.object_tag + ": " + "\n" +
+                    "rotation axis: " + rotation_axis + "\n" +
+                    "current rotation angle: " + distance / this.radius
+                );
             }
 
             return [this.transform, this.current_rotation, this.last_zx_fv_angle + Math.PI / 2];
@@ -214,11 +214,11 @@ window.PhysicsObject = window.classes.PhysicsObject =
             );
             o1.force_vector[2] = vf[0];
             o2.force_vector[2] = vf[1];
-            console.log(
-                "final force vectors: " +
-                "o1 final force vector (x, y, z): " + PhysicsObject.calculate_x_y_z(o1.force_vector) + "\n" +
-                "o2 final force vector (x, y, z): " + PhysicsObject.calculate_x_y_z(o2.force_vector)
-            );
+            // console.log(
+            //     "final force vectors: " +
+            //     "o1 final force vector (x, y, z): " + PhysicsObject.calculate_x_y_z(o1.force_vector) + "\n" +
+            //     "o2 final force vector (x, y, z): " + PhysicsObject.calculate_x_y_z(o2.force_vector)
+            // );
 
             if (add_center_adjust) {
                 // adjust center of o1 to avoid subsequent incorrect collision calculations
@@ -232,13 +232,13 @@ window.PhysicsObject = window.classes.PhysicsObject =
                 o1.transform[2][3] += offset_vector[2];
             }
 
-            console.log(
-                "Collision info: " + "\n" +
-                "init [" + o1.object_tag + "] force vector: " + o1_fv_init + "\n" +
-                "init [" + o2.object_tag + "] force vector: " + o2_fv_init + "\n" +
-                "final [" + o1.object_tag + "] force vector: " + o1.force_vector + "\n" +
-                "final [" + o2.object_tag + "] force vector: " + o2.force_vector
-            );
+            // console.log(
+            //     "Collision info: " + "\n" +
+            //     "init [" + o1.object_tag + "] force vector: " + o1_fv_init + "\n" +
+            //     "init [" + o2.object_tag + "] force vector: " + o2_fv_init + "\n" +
+            //     "final [" + o1.object_tag + "] force vector: " + o1.force_vector + "\n" +
+            //     "final [" + o2.object_tag + "] force vector: " + o2.force_vector
+            // );
 
             const ret = [o1_info, o2_info];
 

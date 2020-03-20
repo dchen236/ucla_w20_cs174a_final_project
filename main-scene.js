@@ -1071,13 +1071,13 @@ window.Ten_Ball_Pool = window.classes.Ten_Ball_Pool =
             distance <= required_distance * (hole_collide ? 1.5 : 1) &&
             o1_center[1] == o2_center[1]; // to prevent balls that have fallen off table from colliding
         if (found_collision) {
-            console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
-                            o1.object_tag + " center: " + o1_center  + "\n" +
-                            o2.object_tag + " center: " + o2_center + "\n" +
-                            o1.object_tag + " radius: " + o1.radius + "\n" +
-                            o2.object_tag + " radius: " + o2.radius + "\n" +
-                            "distance: " + distance
-            );
+            // console.log("found collision between [" + o1.object_tag + "] and [" + o2.object_tag + "]: " + "\n" +
+            //                 o1.object_tag + " center: " + o1_center  + "\n" +
+            //                 o2.object_tag + " center: " + o2_center + "\n" +
+            //                 o1.object_tag + " radius: " + o1.radius + "\n" +
+            //                 o2.object_tag + " radius: " + o2.radius + "\n" +
+            //                 "distance: " + distance
+            // );
         }
 
         return found_collision;
