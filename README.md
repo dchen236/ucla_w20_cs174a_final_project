@@ -36,6 +36,7 @@ This section of the readme will go over the physics implementation. The explanat
 3) Basic collision calculations - 
 	This section will go over basic collision calculation. The function of PhysicsObject responsible for this calculation is the `calculate_elastic_collision` function. 
 	The equations we used for calculating elastic collision between objects were standard (see Elastic Collisions Formula in references). We simply did a 1D elastic collision calculation for all three components of two colliding objects' force vectors. However, this calculation does not take glancing collision into account (i.e., when objects do not collide in a perfectly straight line). We go over adjustments we made to account for glancing collisions in the next section.
+	Also note that in the actual demoed implementation, when calculating the magnitudes of the force vectors on objects after colliding, we did not use a physically accurate equation, and instead approximated the magnitudes of the post-collision forces (see the calculate_elastic_collision_2d formula in the PhysicsObject API). We did this because we were having trouble implementing the real physics equations, and so we approximated something that looked reasonable for most cases.
 
 4) Glancing collision calculations - 
 	In order to make collisions look more realistic, we implemented glancing collision logic. This involved finding the angles at which objects collided, and making sure that the objects' post collision trajectories properly reflected this initial angle of collision.
