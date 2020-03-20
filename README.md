@@ -145,16 +145,19 @@ We implemented the 'party mode' by dimming the texture objects, changing the loc
 * Helped with the physics part by adding and tracking the center of objects for collision detection.
 * Wrote the skybox and collision detection section of the readme
 
-
-
-
 ### William Chern
-* Found textures for all pool balls, implemented image textures onto number balls
+* Found and reformatted textures for all pool balls to be compatible with tinygraphics
+* Implemented image textures onto number balls
+* Found cue stick object, added to game
 * Worked with Danni and Tejas to create casino textures and implement casino skybox
 * Created and implemented "party mode" (dark mode) visuals
     * Dimmed textures
     * Adjusted lighting
+* Designed game intro screens with instructions for players, including important keys for the game
+* Designed game won/lost screens, indicating reasons for winning/losing the game and how to reset the game
+* Reset cue stick during game resets
 * Recorded screen recordings and voiceovers for in-class final presentation video
+* Compiled and edited final report
 
 ### Edward Lu
 * Helped with collision detection feature (adding feature of detecting all ball to ball collisions, not just cue ball to ball)
